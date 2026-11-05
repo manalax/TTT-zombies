@@ -1,6 +1,6 @@
 # Working Title: *Vigil of Ash* — Design Document
 
-> **Status:** v0.1, draft agreed with the project owner. **Engine:** Godot 4.x (stable, latest 4.x at project start; pin it in `project.godot` and `README`).
+> **Status:** v0.1, draft agreed with the project owner. **Engine:** Godot **4.7.2** (mono build installed; C# unused until §12.4). Forward+ renderer, Jolt 3D physics.
 > **How to use this document:** it is written for incremental implementation by Claude sessions. Read §0 first, then jump to the feature you are building in §14 (Roadmap). Every feature has an ID, dependencies and acceptance criteria. Do not implement more than one feature ID per session unless they are tiny.
 
 ---
@@ -477,4 +477,4 @@ Each ID is a self-contained work item. Check dependencies first. "AC" = acceptan
 7. **Record decisions:** non-trivial architecture choices get a short `docs/adr/NNNN-title.md`.
 8. **Placeholders over blockers:** if art/audio is missing, use the placeholder slot; do not stall.
 9. **Keep content in `/content` as `.tres`**; do not hard-code stats in scripts.
-10. **Verify by running** the game or tests (Godot headless: `godot --headless --path . -s addons/gdUnit4/bin/GdUnitCmdTool.gd ...`), and report honestly if something could not be verified.
+10. **Verify by running** the game or tests (`scripts/run_tests.sh`, plus `gdformat --check` / `gdlint` on `src tests`), and report honestly if something could not be verified.

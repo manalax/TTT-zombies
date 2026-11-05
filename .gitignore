@@ -1,1 +1,19 @@
+# Godot
+.godot/
+/build/
+export_presets.cfg
+
+# gdUnit4 output
+/reports/
+/addons/gdUnit4/reports/
+
+# Third-party asset sources (licence forbids redistribution; never commit)
 /Source-Files
+*.zip
+
+# Python tooling
+__pycache__/
+.venv/
+
+# OS
+.DS_Store
