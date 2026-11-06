@@ -234,6 +234,8 @@ WaveData
   - clear_condition: enum {KILL_ALL, KILL_QUOTA, SURVIVE_TIME}
 ```
 
+> Implemented in F003: `src/data/waves/` (`WaveSet`, `WaveData`, `WaveEntry`, `WaveModifier`). The field names in the code are authoritative. See [ADR 0002](adr/0002-content-data-model.md).
+
 A **`WaveSet`** is an ordered `Array[WaveData]` (12 by default). Presets (MVP): *Default*, *Horde* (huge swarm, few specials), *Specials Only*, *Slow Burn*.
 
 ### 8.2 Default difficulty curve (shipping preset)
@@ -263,7 +265,7 @@ Tune numbers in data only (spreadsheet-style `.tres` or `.csv` import is accepta
 
 ## 9. Host Customisation: `MatchSettings`
 
-Single `Resource` replicated to all clients when the lobby locks. Draft fields (group by category in the lobby UI):
+Single `Resource` replicated to all clients when the lobby locks. It is implemented in F003 as `src/data/match/match_settings.gd`, which is authoritative for field names and defaults. The presets are in `content/match_presets/`. Draft fields (group by category in the lobby UI):
 
 **Lobby / Players**
 - `max_players` (2–8), `mode` (BETRAYAL/VIGIL), `public/private`, `allow_join_in_progress`, `late_join_role` (hunter or spectator)
@@ -361,7 +363,7 @@ Zones have `LootTable` resources; deeper zones carry higher tier weights. Pickup
 - **Player** is a `CharacterBody3D` with child components: `HealthComponent`, `StaminaComponent`, `LoadoutComponent`, `RoleComponent` (server-owned), `PointsComponent`, `PerkComponent`, `ExposureComponent`.
 - **Damage pipeline:** a single `DamageEvent` object (source, target, amount, type, weakpoint, weapon) processed by `DamageService` on the server → applies mods (block/parry/perks/FF scale) → emits `damage_applied` signal → `EconomyService` awards points, `RoleService` checks exposure, `ConversionService` handles death.
 - **Event bus:** autoload `Events` with typed signals (`wave_started`, `player_died`, `player_exposed`, `door_opened`, …). Systems communicate through signals, not direct node paths.
-- **State machines:** a reusable `StateMachine` node for enemies, weapons, match flow.
+- **State machines:** a reusable hierarchical `StateMachine` (node + `State` children) for enemies, weapons and match flow. See [ADR 0001](adr/0001-hierarchical-state-machine.md).
 
 ### 12.4 GDScript / C# split (D1)
 - All gameplay logic starts in **GDScript** with static typing everywhere (`var x: int`, typed arrays, `class_name`).

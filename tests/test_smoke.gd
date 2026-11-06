@@ -2,7 +2,7 @@ extends GdUnitTestSuite
 ## F001 smoke tests: the project boots, autoloads exist, the main scene loads.
 
 const MAIN_SCENE := "res://src/main/main.tscn"
-const AUTOLOADS: Array[String] = ["Events", "Net", "Settings", "Game", "Audio"]
+const AUTOLOADS: Array[String] = ["Events", "ContentDB", "Net", "Settings", "Game", "Audio"]
 
 
 func test_net_is_authority_offline() -> void:

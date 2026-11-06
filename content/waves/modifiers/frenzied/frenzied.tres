@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="WaveModifier" format=3]
+
+[ext_resource type="Script" path="res://src/data/waves/wave_modifier.gd" id="1_8yjk4"]
+
+[resource]
+script = ExtResource("1_8yjk4")
+enemy_damage_mult = 1.1
+enemy_speed_mult = 1.3
+id = &"frenzied"
+display_name = "Frenzied"

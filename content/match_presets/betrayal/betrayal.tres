@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="MatchSettings" format=3]
+
+[ext_resource type="Script" path="res://src/data/match/match_settings.gd" id="1_iv1a0"]
+[ext_resource type="Resource" path="res://content/waves/sets/test_short/test_short.tres" id="2_w3wnf"]
+
+[resource]
+script = ExtResource("1_iv1a0")
+wave_set = ExtResource("2_w3wnf")
+player_scale = PackedFloat32Array(0, 1, 1.4, 1.8, 2.2, 2.6, 3, 3.4, 3.8)
+starting_loadout = Array[StringName]([&"arming_sword", &"revolver"])
+id = &"betrayal"
+display_name = "Betrayal"
+description = "Hunters survive 12 rounds while a hidden traitor works against them. The fallen rise as the cult."

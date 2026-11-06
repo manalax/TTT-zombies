@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PerkData" format=3]
+
+[ext_resource type="Script" path="res://src/data/perks/perk_data.gd" id="1_niax7"]
+
+[resource]
+script = ExtResource("1_niax7")
+cost = 2500
+stat_modifiers = Dictionary[StringName, float]({
+&"max_health_add": 25.0
+})
+id = &"iron_constitution"
+display_name = "Iron Constitution"
+description = "A sacrament of iron. +25 maximum health."

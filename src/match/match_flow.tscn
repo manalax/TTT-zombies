@@ -1,0 +1,39 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/match/match_flow.gd" id="1_flow"]
+[ext_resource type="Script" path="res://src/core/state_machine/state.gd" id="2_state"]
+
+[node name="MatchFlow" type="Node"]
+script = ExtResource("1_flow")
+
+[node name="Lobby" type="Node" parent="."]
+script = ExtResource("2_state")
+allowed_transitions = Array[StringName]([&"Loading"])
+
+[node name="Loading" type="Node" parent="."]
+script = ExtResource("2_state")
+allowed_transitions = Array[StringName]([&"InMatch"])
+
+[node name="InMatch" type="Node" parent="."]
+script = ExtResource("2_state")
+allowed_transitions = Array[StringName]([&"Victory", &"Defeat"])
+
+[node name="Intermission" type="Node" parent="InMatch"]
+script = ExtResource("2_state")
+allowed_transitions = Array[StringName]([&"WaveActive"])
+
+[node name="WaveActive" type="Node" parent="InMatch"]
+script = ExtResource("2_state")
+allowed_transitions = Array[StringName]([&"Intermission"])
+
+[node name="Victory" type="Node" parent="."]
+script = ExtResource("2_state")
+allowed_transitions = Array[StringName]([&"Results"])
+
+[node name="Defeat" type="Node" parent="."]
+script = ExtResource("2_state")
+allowed_transitions = Array[StringName]([&"Results"])
+
+[node name="Results" type="Node" parent="."]
+script = ExtResource("2_state")
+allowed_transitions = Array[StringName]([&"Lobby"])

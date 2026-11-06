@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="WaveSet" format=3]
+
+[ext_resource type="Script" path="res://src/data/waves/wave_set.gd" id="1_18kih"]
+[ext_resource type="Script" path="res://src/data/waves/wave_data.gd" id="2_s73cw"]
+[ext_resource type="Script" path="res://src/data/waves/wave_entry.gd" id="3_052nk"]
+[ext_resource type="Resource" path="res://tests/data/fixtures/content/enemies/good_enemy/good_enemy.tres" id="4_sjh4a"]
+[ext_resource type="Script" path="res://src/data/waves/wave_modifier.gd" id="5_hqkbq"]
+
+[sub_resource type="Resource" id="Resource_f8kxl"]
+script = ExtResource("3_052nk")
+enemy = ExtResource("4_sjh4a")
+count_max = 2
+
+[sub_resource type="Resource" id="Resource_h4g77"]
+script = ExtResource("2_s73cw")
+budget_points = 5
+entries = Array[ExtResource("3_052nk")]([SubResource("Resource_f8kxl")])
+
+[resource]
+script = ExtResource("1_18kih")
+waves = Array[ExtResource("2_s73cw")]([SubResource("Resource_h4g77")])
+id = &"broken_set"
+display_name = "Broken Set"

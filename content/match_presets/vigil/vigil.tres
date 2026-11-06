@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="MatchSettings" format=3]
+
+[ext_resource type="Script" path="res://src/data/match/match_settings.gd" id="1_7vl4a"]
+[ext_resource type="Resource" path="res://content/waves/sets/test_short/test_short.tres" id="2_6pg2d"]
+
+[resource]
+script = ExtResource("1_7vl4a")
+mode = 1
+traitors_enabled = false
+friendly_fire = false
+conversion_enabled = false
+wave_set = ExtResource("2_6pg2d")
+player_scale = PackedFloat32Array(0, 1, 1.4, 1.8, 2.2, 2.6, 3, 3.4, 3.8)
+starting_loadout = Array[StringName]([&"arming_sword", &"revolver"])
+id = &"vigil"
+display_name = "Vigil"
+description = "Co-operative survival: no traitors, no friendly fire. The fallen return next wave."

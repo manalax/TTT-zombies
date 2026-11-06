@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://src/data/weapons/firearm_stats.gd" id="1_vt5qa"]
+[ext_resource type="Script" path="res://src/data/weapons/weapon_data.gd" id="2_re1is"]
+
+[sub_resource type="Resource" id="Resource_5ayrc"]
+script = ExtResource("1_vt5qa")
+
+[resource]
+script = ExtResource("2_re1is")
+slot = 0
+wall_cost = 750
+firearm_stats = SubResource("Resource_5ayrc")
+id = &"revolver"
+display_name = "Service Revolver"
+description = "Six chambers of silver-tipped mercy. Ammunition is dear."

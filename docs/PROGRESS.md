@@ -7,8 +7,8 @@ Status: `todo` · `in progress` · `done`. Update this file in the same change a
 |---|---|---|---|
 | **M0** | **Foundations** | | |
 | F001 | Project skeleton | done | Godot 4.7.2, Forward+, Jolt; gdUnit4 6.2.3 vendored; gdtoolkit 4.5.0; CI workflow added (runs for the first time on push) |
-| F002 | StateMachine & Events bus | todo | |
-| F003 | Data resource classes + validators | todo | |
+| F002 | StateMachine & Events bus | done | Hierarchical FSM (ADR 0001); Events bus with 19 typed, local-only signals; skeleton `MatchFlow` in `src/match/` (logic in F019) |
+| F003 | Data resource classes + validators | done | ADR 0002. `GameData` + `ValidationReport`; weapons via composition; `ContentDB` registry; `DataSerializer` for MatchSettings/WaveSet; sample content + Betrayal/Vigil presets (`test_short` 3-wave set until F065) |
 | **M1** | **Single-player sandbox** | | |
 | F010 | First-person controller | todo | |
 | F011 | Damage pipeline | todo | |

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="MatchSettings" format=3]
+
+[ext_resource type="Script" path="res://src/data/match/match_settings.gd" id="1_b66o5"]
+[ext_resource type="Resource" path="res://tests/data/fixtures/content/waves/broken_set/broken_set.tres" id="2_ev1km"]
+
+[resource]
+script = ExtResource("1_b66o5")
+wave_set = ExtResource("2_ev1km")
+player_scale = PackedFloat32Array(0, 1, 1.4, 1.8, 2.2, 2.6, 3, 3.4, 3.8)
+starting_loadout = Array[StringName]([&"nope"])
+id = &"bad_refs"
+display_name = "Bad Refs"
