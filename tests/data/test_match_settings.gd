@@ -15,8 +15,11 @@ func test_impossible_values_are_errors() -> void:
 	settings.ammo_scarcity = 5.0
 	settings.player_scale = PackedFloat32Array([1.0])
 	settings.wave_set = null
+	settings.cult_friendly_fire_scale = 3.0
 	var report := settings.validate()
-	for field: String in ["max_players", "ammo_scarcity", "player_scale", "wave_set"]:
+	for field: String in [
+		"max_players", "ammo_scarcity", "player_scale", "wave_set", "cult_friendly_fire_scale"
+	]:
 		(
 			assert_bool(report.mentions("." + field))
 			. override_failure_message("expected an error for %s:\n%s" % [field, report.format()])

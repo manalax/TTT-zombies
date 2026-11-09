@@ -1,0 +1,43 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/world/zones/door.gd" id="1_door"]
+[ext_resource type="Script" path="res://src/world/interact/interactable.gd" id="2_interact"]
+
+[sub_resource type="BoxShape3D" id="Box_door"]
+size = Vector3(2.4, 3, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="Mat_door"]
+albedo_color = Color(0.36, 0.24, 0.14, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Mesh_door"]
+material = SubResource("Mat_door")
+size = Vector3(2.4, 3, 0.4)
+
+[node name="Door" type="StaticBody3D"]
+script = ExtResource("1_door")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("Box_door")
+
+[node name="Slab" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+mesh = SubResource("Mesh_door")
+
+[node name="Label" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4, 0)
+billboard = 1
+pixel_size = 0.004
+font_size = 40
+outline_size = 8
+text = "Door"
+
+[node name="NavigationLink3D" type="NavigationLink3D" parent="."]
+enabled = false
+start_position = Vector3(0, 0, -1.2)
+end_position = Vector3(0, 0, 1.2)
+
+[node name="Interactable" type="Node" parent="."]
+script = ExtResource("2_interact")
+prompt = "Open Door"

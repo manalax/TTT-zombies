@@ -11,6 +11,8 @@ enum Slot { FIREARM, MELEE }
 @export_range(1, 5, 1) var tier: int = 1
 ## Point cost at a wall-buy station.
 @export_range(0, 20000, 10) var wall_cost: int = 500
+## Holster + draw time when switching to this weapon; no attacking meanwhile.
+@export_range(0.05, 2.0, 0.01, "suffix:s") var draw_s: float = 0.4
 @export var melee_stats: MeleeStats
 @export var firearm_stats: FirearmStats
 
@@ -24,6 +26,7 @@ func _validate(report: ValidationReport) -> void:
 	var source := source_label()
 	report.check_range(source, "tier", tier, 1, 5)
 	report.check_min(source, "wall_cost", wall_cost, 0)
+	report.check_range(source, "draw_s", draw_s, 0.05, 2.0)
 	if slot == Slot.MELEE:
 		report.check(melee_stats != null, source, "melee_stats", "required for MELEE weapons")
 	else:

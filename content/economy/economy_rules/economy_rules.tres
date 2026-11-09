@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="EconomyRules" format=3]
+
+[ext_resource type="Script" path="res://src/data/economy/economy_rules.gd" id="1_econ"]
+
+[resource]
+script = ExtResource("1_econ")
+id = &"economy_rules"
+display_name = "Economy Rules"
+description = "Damage-to-points multipliers, bonuses and rounding."

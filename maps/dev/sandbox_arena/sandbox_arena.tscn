@@ -1,0 +1,707 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://src/player/player.tscn" id="1_tw4dc"]
+[ext_resource type="PackedScene" path="res://src/world/dev/training_dummy.tscn" id="2_dummy"]
+[ext_resource type="PackedScene" path="res://src/world/dev/weapon_pickup_stand.tscn" id="3_stand"]
+[ext_resource type="Script" path="res://src/world/nav/runtime_nav_region.gd" id="4_nav"]
+[ext_resource type="Script" path="res://src/enemies/enemy_registry.gd" id="5_registry"]
+[ext_resource type="Script" path="res://src/world/spawn/enemy_spawn_point.gd" id="6_spawn"]
+[ext_resource type="Script" path="res://src/world/zones/zone.gd" id="7_zone"]
+[ext_resource type="PackedScene" path="res://src/world/zones/door.tscn" id="8_door"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_st3f2"]
+sky_top_color = Color(0.12, 0.13, 0.18, 1)
+sky_horizon_color = Color(0.36, 0.32, 0.3, 1)
+ground_bottom_color = Color(0.1, 0.09, 0.09, 1)
+ground_horizon_color = Color(0.36, 0.32, 0.3, 1)
+
+[sub_resource type="Sky" id="Sky_pxsxg"]
+sky_material = SubResource("ProceduralSkyMaterial_st3f2")
+
+[sub_resource type="Environment" id="Environment_5ttuw"]
+background_mode = 2
+sky = SubResource("Sky_pxsxg")
+ambient_light_source = 3
+tonemap_mode = 2
+fog_enabled = true
+fog_density = 0.004
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_k0elw"]
+albedo_color = Color(0.32, 0.31, 0.3, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ldfe2"]
+albedo_color = Color(0.22, 0.21, 0.22, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ls2uy"]
+albedo_color = Color(0.45, 0.38, 0.28, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sfq1s"]
+albedo_color = Color(0.3, 0.4, 0.45, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_s08im"]
+albedo_color = Color(0.55, 0.22, 0.2, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_0um2o"]
+size = Vector3(3, 0.1, 3.4409301)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7mw4f"]
+albedo_color = Color(0.35, 0.3, 0.4, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0n56n"]
+albedo_color = Color(0.4, 0.42, 0.3, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_xpeo5"]
+albedo_color = Color(0.8, 0.65, 0.3, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_vxjf0"]
+albedo_color = Color(0.5, 0.5, 0.52, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="Box_zone_arena"]
+size = Vector3(60, 4, 60)
+
+[sub_resource type="BoxShape3D" id="Box_zone_annex"]
+size = Vector3(14, 4, 20)
+
+[node name="SandboxArena" type="Node3D" unique_id=20033177]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2070119386]
+environment = SubResource("Environment_5ttuw")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=2073318531]
+transform = Transform3D(0.81915206, 0.43938506, -0.36868784, 0, 0.64278764, 0.76604444, 0.57357645, -0.62750685, 0.5265408, 0, 0, 0)
+light_energy = 1.1
+shadow_enabled = true
+
+[node name="Geometry" type="Node3D" parent="." unique_id=1658338747]
+
+[node name="Floor" type="CSGBox3D" parent="Geometry" unique_id=1287786240]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+use_collision = true
+size = Vector3(60, 1, 60)
+material = SubResource("StandardMaterial3D_k0elw")
+
+[node name="Wall0" type="CSGBox3D" parent="Geometry" unique_id=105879263]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -30)
+use_collision = true
+size = Vector3(61, 4, 1)
+material = SubResource("StandardMaterial3D_ldfe2")
+
+[node name="Wall1" type="CSGBox3D" parent="Geometry" unique_id=1779025373]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 30)
+use_collision = true
+size = Vector3(61, 4, 1)
+material = SubResource("StandardMaterial3D_ldfe2")
+
+[node name="Wall2" type="CSGBox3D" parent="Geometry" unique_id=95362440]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 2, -18.85)
+use_collision = true
+size = Vector3(1, 4, 23.3)
+material = SubResource("StandardMaterial3D_ldfe2")
+
+[node name="Wall2Mid" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 2, 0)
+use_collision = true
+size = Vector3(1, 4, 9.6)
+material = SubResource("StandardMaterial3D_ldfe2")
+
+[node name="Wall2South" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 2, 18.85)
+use_collision = true
+size = Vector3(1, 4, 23.3)
+material = SubResource("StandardMaterial3D_ldfe2")
+
+[node name="Lintels" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -30, 3.5, 0)
+use_collision = true
+size = Vector3(1, 1, 14.4)
+material = SubResource("StandardMaterial3D_ldfe2")
+
+[node name="Annex" type="Node3D" parent="Geometry"]
+
+[node name="AnnexFloor" type="CSGBox3D" parent="Geometry/Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.25, -0.5, 0)
+use_collision = true
+size = Vector3(14.5, 1, 21)
+material = SubResource("StandardMaterial3D_k0elw")
+
+[node name="AnnexNorth" type="CSGBox3D" parent="Geometry/Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.25, 2, -10.5)
+use_collision = true
+size = Vector3(14.5, 4, 1)
+material = SubResource("StandardMaterial3D_ldfe2")
+
+[node name="AnnexSouth" type="CSGBox3D" parent="Geometry/Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.25, 2, 10.5)
+use_collision = true
+size = Vector3(14.5, 4, 1)
+material = SubResource("StandardMaterial3D_ldfe2")
+
+[node name="AnnexWest" type="CSGBox3D" parent="Geometry/Annex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44.5, 2, 0)
+use_collision = true
+size = Vector3(1, 4, 22)
+material = SubResource("StandardMaterial3D_ldfe2")
+
+[node name="Wall3" type="CSGBox3D" parent="Geometry" unique_id=1161892879]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 2, 0)
+use_collision = true
+size = Vector3(1, 4, 61)
+material = SubResource("StandardMaterial3D_ldfe2")
+
+[node name="Ramps" type="Node3D" parent="Geometry" unique_id=671750980]
+
+[node name="Ramp20" type="CSGBox3D" parent="Geometry/Ramps" unique_id=1696138334]
+transform = Transform3D(1, 0, 0, 0, 0.9396926, -0.34202012, 0, 0.34202012, 0.9396926, -18, 0.9, -8.747478)
+use_collision = true
+size = Vector3(3, 0.3, 5.8476086)
+material = SubResource("StandardMaterial3D_ls2uy")
+
+[node name="Top20" type="CSGBox3D" parent="Geometry/Ramps" unique_id=1382598212]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1, -12.994955)
+use_collision = true
+size = Vector3(3, 2, 3)
+material = SubResource("StandardMaterial3D_sfq1s")
+
+[node name="Label_20°_ramp" type="Label3D" parent="Geometry/Ramps" unique_id=994722581]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1.2, -5.2)
+pixel_size = 0.006
+billboard = 1
+text = "20° ramp"
+font_size = 48
+outline_size = 8
+
+[node name="Ramp40" type="CSGBox3D" parent="Geometry/Ramps" unique_id=2031968538]
+transform = Transform3D(1, 0, 0, 0, 0.76604444, -0.6427876, 0, 0.6427876, 0.76604444, -14, 0.9, -7.1917534)
+use_collision = true
+size = Vector3(3, 0.3, 3.1114476)
+material = SubResource("StandardMaterial3D_ls2uy")
+
+[node name="Top40" type="CSGBox3D" parent="Geometry/Ramps" unique_id=1561494955]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 1, -9.883507)
+use_collision = true
+size = Vector3(3, 2, 3)
+material = SubResource("StandardMaterial3D_sfq1s")
+
+[node name="Label_40°_ramp" type="Label3D" parent="Geometry/Ramps" unique_id=79250791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 1.2, -5.2)
+pixel_size = 0.006
+billboard = 1
+text = "40° ramp"
+font_size = 48
+outline_size = 8
+
+[node name="Ramp50" type="CSGBox3D" parent="Geometry/Ramps" unique_id=1146027965]
+transform = Transform3D(1, 0, 0, 0, 0.64278764, -0.76604444, 0, 0.76604444, 0.64278764, -10, 0.9, -6.8390994)
+use_collision = true
+size = Vector3(3, 0.3, 2.6108146)
+material = SubResource("StandardMaterial3D_s08im")
+
+[node name="Top50" type="CSGBox3D" parent="Geometry/Ramps" unique_id=464897838]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, -9.178199)
+use_collision = true
+size = Vector3(3, 2, 3)
+material = SubResource("StandardMaterial3D_sfq1s")
+
+[node name="Label_50°_ramp_(too_steep)" type="Label3D" parent="Geometry/Ramps" unique_id=699856916]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1.2, -5.2)
+pixel_size = 0.006
+billboard = 1
+text = "50° ramp (too steep)"
+font_size = 48
+outline_size = 8
+
+[node name="Stairs" type="Node3D" parent="Geometry" unique_id=1878712241]
+
+[node name="Step0" type="CSGBox3D" parent="Geometry/Stairs" unique_id=1398444483]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.125, -6.175)
+size = Vector3(3, 0.25, 0.35)
+material = SubResource("StandardMaterial3D_ls2uy")
+
+[node name="Step1" type="CSGBox3D" parent="Geometry/Stairs" unique_id=2000165501]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.25, -6.525)
+size = Vector3(3, 0.5, 0.35)
+material = SubResource("StandardMaterial3D_ls2uy")
+
+[node name="Step2" type="CSGBox3D" parent="Geometry/Stairs" unique_id=698593707]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.375, -6.875)
+size = Vector3(3, 0.75, 0.35)
+material = SubResource("StandardMaterial3D_ls2uy")
+
+[node name="Step3" type="CSGBox3D" parent="Geometry/Stairs" unique_id=1036197546]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.5, -7.225)
+size = Vector3(3, 1, 0.35)
+material = SubResource("StandardMaterial3D_ls2uy")
+
+[node name="Step4" type="CSGBox3D" parent="Geometry/Stairs" unique_id=160342197]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.625, -7.575)
+size = Vector3(3, 1.25, 0.35)
+material = SubResource("StandardMaterial3D_ls2uy")
+
+[node name="Step5" type="CSGBox3D" parent="Geometry/Stairs" unique_id=1063660506]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.75, -7.925)
+size = Vector3(3, 1.5, 0.35)
+material = SubResource("StandardMaterial3D_ls2uy")
+
+[node name="Step6" type="CSGBox3D" parent="Geometry/Stairs" unique_id=1490318836]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.875, -8.275)
+size = Vector3(3, 1.75, 0.35)
+material = SubResource("StandardMaterial3D_ls2uy")
+
+[node name="Step7" type="CSGBox3D" parent="Geometry/Stairs" unique_id=1669351001]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1, -8.625)
+size = Vector3(3, 2, 0.35)
+material = SubResource("StandardMaterial3D_ls2uy")
+
+[node name="Landing" type="CSGBox3D" parent="Geometry/Stairs" unique_id=1220383877]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1, -10.3)
+use_collision = true
+size = Vector3(3, 2, 3)
+material = SubResource("StandardMaterial3D_sfq1s")
+
+[node name="StairRampCollider" type="StaticBody3D" parent="Geometry/Stairs" unique_id=1125070966]
+transform = Transform3D(1, 0, 0, 0, 0.81373346, -0.5812382, 0, 0.5812382, 0.81373346, -4, 1.03, -7.4)
+
+[node name="Shape" type="CollisionShape3D" parent="Geometry/Stairs/StairRampCollider" unique_id=425079862]
+shape = SubResource("BoxShape3D_0um2o")
+
+[node name="Label_Stairs_(ramp_collider)" type="Label3D" parent="Geometry/Stairs" unique_id=826005077]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.2, -5.2)
+pixel_size = 0.006
+billboard = 1
+text = "Stairs (ramp collider)"
+font_size = 48
+outline_size = 8
+
+[node name="JumpBoxes" type="Node3D" parent="Geometry" unique_id=2137337241]
+
+[node name="Box0_5" type="CSGBox3D" parent="Geometry/JumpBoxes" unique_id=36165197]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.25, -8)
+use_collision = true
+size = Vector3(2, 0.5, 2)
+material = SubResource("StandardMaterial3D_sfq1s")
+
+[node name="Label_0_5_m" type="Label3D" parent="Geometry/JumpBoxes" unique_id=1362829759]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1, -6.8)
+pixel_size = 0.006
+billboard = 1
+text = "0.5 m"
+font_size = 48
+outline_size = 8
+
+[node name="Box0_9" type="CSGBox3D" parent="Geometry/JumpBoxes" unique_id=1743514831]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.45, -8)
+use_collision = true
+size = Vector3(2, 0.9, 2)
+material = SubResource("StandardMaterial3D_sfq1s")
+
+[node name="Label_0_9_m" type="Label3D" parent="Geometry/JumpBoxes" unique_id=1604580791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1.4, -6.8)
+pixel_size = 0.006
+billboard = 1
+text = "0.9 m"
+font_size = 48
+outline_size = 8
+
+[node name="Box1_3" type="CSGBox3D" parent="Geometry/JumpBoxes" unique_id=200798719]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0.65, -8)
+use_collision = true
+size = Vector3(2, 1.3, 2)
+material = SubResource("StandardMaterial3D_sfq1s")
+
+[node name="Label_1_3_m_(crouch-jump)" type="Label3D" parent="Geometry/JumpBoxes" unique_id=1155186821]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 1.8, -6.8)
+pixel_size = 0.006
+billboard = 1
+text = "1.3 m (crouch-jump)"
+font_size = 48
+outline_size = 8
+
+[node name="CrouchTunnel" type="Node3D" parent="Geometry" unique_id=750067342]
+
+[node name="WallL" type="CSGBox3D" parent="Geometry/CrouchTunnel" unique_id=1066411817]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.75, 0.65, -8)
+use_collision = true
+size = Vector3(0.5, 1.3, 6)
+material = SubResource("StandardMaterial3D_7mw4f")
+
+[node name="WallR" type="CSGBox3D" parent="Geometry/CrouchTunnel" unique_id=1792321219]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.25, 0.65, -8)
+use_collision = true
+size = Vector3(0.5, 1.3, 6)
+material = SubResource("StandardMaterial3D_7mw4f")
+
+[node name="Roof" type="CSGBox3D" parent="Geometry/CrouchTunnel" unique_id=562319797]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1.55, -8)
+use_collision = true
+size = Vector3(3, 0.5, 6)
+material = SubResource("StandardMaterial3D_7mw4f")
+
+[node name="Label_1_3_m_crouch_tunnel" type="Label3D" parent="Geometry/CrouchTunnel" unique_id=1117913747]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 2.2, -4.8)
+pixel_size = 0.006
+billboard = 1
+text = "1.3 m crouch tunnel"
+font_size = 48
+outline_size = 8
+
+[node name="Gaps" type="Node3D" parent="Geometry" unique_id=1453189679]
+
+[node name="Start" type="CSGBox3D" parent="Geometry/Gaps" unique_id=1715820416]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0.5, 6)
+use_collision = true
+size = Vector3(3, 1, 12)
+material = SubResource("StandardMaterial3D_0n56n")
+
+[node name="Label_3_m_(walk)" type="Label3D" parent="Geometry/Gaps" unique_id=1917957769]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 1.8, -1.5)
+pixel_size = 0.006
+billboard = 1
+text = "3 m (walk)"
+font_size = 48
+outline_size = 8
+
+[node name="Platform0" type="CSGBox3D" parent="Geometry/Gaps" unique_id=1752103863]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0.5, -5)
+use_collision = true
+size = Vector3(3, 1, 4)
+material = SubResource("StandardMaterial3D_0n56n")
+
+[node name="Label_5_m_(sprint)" type="Label3D" parent="Geometry/Gaps" unique_id=915256877]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 1.8, -9.5)
+pixel_size = 0.006
+billboard = 1
+text = "5 m (sprint)"
+font_size = 48
+outline_size = 8
+
+[node name="Platform1" type="CSGBox3D" parent="Geometry/Gaps" unique_id=712403973]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0.5, -14)
+use_collision = true
+size = Vector3(3, 1, 4)
+material = SubResource("StandardMaterial3D_0n56n")
+
+[node name="Label_7_m_(no)" type="Label3D" parent="Geometry/Gaps" unique_id=242087926]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 1.8, -19.5)
+pixel_size = 0.006
+billboard = 1
+text = "7 m (no)"
+font_size = 48
+outline_size = 8
+
+[node name="Platform2" type="CSGBox3D" parent="Geometry/Gaps" unique_id=973086217]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 23, 0.5, -25)
+use_collision = true
+size = Vector3(3, 1, 4)
+material = SubResource("StandardMaterial3D_0n56n")
+
+[node name="SprintLane" type="Node3D" parent="Geometry" unique_id=693723559]
+
+[node name="Marker0" type="CSGBox3D" parent="Geometry/SprintLane" unique_id=2113544581]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.01, 25)
+size = Vector3(3, 0.02, 0.2)
+material = SubResource("StandardMaterial3D_xpeo5")
+
+[node name="Label_0_m" type="Label3D" parent="Geometry/SprintLane" unique_id=234094221]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.8, 0.4, 25)
+pixel_size = 0.0035
+billboard = 1
+text = "0 m"
+font_size = 48
+outline_size = 8
+
+[node name="Marker1" type="CSGBox3D" parent="Geometry/SprintLane" unique_id=180815220]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.01, 20)
+size = Vector3(3, 0.02, 0.2)
+material = SubResource("StandardMaterial3D_xpeo5")
+
+[node name="Label_5_m" type="Label3D" parent="Geometry/SprintLane" unique_id=1864403479]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.8, 0.4, 20)
+pixel_size = 0.0035
+billboard = 1
+text = "5 m"
+font_size = 48
+outline_size = 8
+
+[node name="Marker2" type="CSGBox3D" parent="Geometry/SprintLane" unique_id=734285213]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.01, 15)
+size = Vector3(3, 0.02, 0.2)
+material = SubResource("StandardMaterial3D_xpeo5")
+
+[node name="Label_10_m" type="Label3D" parent="Geometry/SprintLane" unique_id=1815467104]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.8, 0.4, 15)
+pixel_size = 0.0035
+billboard = 1
+text = "10 m"
+font_size = 48
+outline_size = 8
+
+[node name="Marker3" type="CSGBox3D" parent="Geometry/SprintLane" unique_id=1191174365]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.01, 10)
+size = Vector3(3, 0.02, 0.2)
+material = SubResource("StandardMaterial3D_xpeo5")
+
+[node name="Label_15_m" type="Label3D" parent="Geometry/SprintLane" unique_id=1331871734]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.8, 0.4, 10)
+pixel_size = 0.0035
+billboard = 1
+text = "15 m"
+font_size = 48
+outline_size = 8
+
+[node name="Marker4" type="CSGBox3D" parent="Geometry/SprintLane" unique_id=1698417662]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.01, 5)
+size = Vector3(3, 0.02, 0.2)
+material = SubResource("StandardMaterial3D_xpeo5")
+
+[node name="Label_20_m" type="Label3D" parent="Geometry/SprintLane" unique_id=2052115881]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.8, 0.4, 5)
+pixel_size = 0.0035
+billboard = 1
+text = "20 m"
+font_size = 48
+outline_size = 8
+
+[node name="Marker5" type="CSGBox3D" parent="Geometry/SprintLane" unique_id=1912995373]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.01, 0)
+size = Vector3(3, 0.02, 0.2)
+material = SubResource("StandardMaterial3D_xpeo5")
+
+[node name="Label_25_m" type="Label3D" parent="Geometry/SprintLane" unique_id=333353417]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.8, 0.4, 0)
+pixel_size = 0.0035
+billboard = 1
+text = "25 m"
+font_size = 48
+outline_size = 8
+
+[node name="Marker6" type="CSGBox3D" parent="Geometry/SprintLane" unique_id=517734180]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.01, -5)
+size = Vector3(3, 0.02, 0.2)
+material = SubResource("StandardMaterial3D_xpeo5")
+
+[node name="Label_30_m" type="Label3D" parent="Geometry/SprintLane" unique_id=35598780]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.8, 0.4, -5)
+pixel_size = 0.0035
+billboard = 1
+text = "30 m"
+font_size = 48
+outline_size = 8
+
+[node name="Marker7" type="CSGBox3D" parent="Geometry/SprintLane" unique_id=47915977]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.01, -10)
+size = Vector3(3, 0.02, 0.2)
+material = SubResource("StandardMaterial3D_xpeo5")
+
+[node name="Label_35_m" type="Label3D" parent="Geometry/SprintLane" unique_id=1460786961]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.8, 0.4, -10)
+pixel_size = 0.0035
+billboard = 1
+text = "35 m"
+font_size = 48
+outline_size = 8
+
+[node name="Marker8" type="CSGBox3D" parent="Geometry/SprintLane" unique_id=2111589499]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.01, -15)
+size = Vector3(3, 0.02, 0.2)
+material = SubResource("StandardMaterial3D_xpeo5")
+
+[node name="Label_40_m" type="Label3D" parent="Geometry/SprintLane" unique_id=1584473121]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.8, 0.4, -15)
+pixel_size = 0.0035
+billboard = 1
+text = "40 m"
+font_size = 48
+outline_size = 8
+
+[node name="Marker9" type="CSGBox3D" parent="Geometry/SprintLane" unique_id=998852305]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.01, -20)
+size = Vector3(3, 0.02, 0.2)
+material = SubResource("StandardMaterial3D_xpeo5")
+
+[node name="Label_45_m" type="Label3D" parent="Geometry/SprintLane" unique_id=1075696731]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.8, 0.4, -20)
+pixel_size = 0.0035
+billboard = 1
+text = "45 m"
+font_size = 48
+outline_size = 8
+
+[node name="Marker10" type="CSGBox3D" parent="Geometry/SprintLane" unique_id=1425545024]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0.01, -25)
+size = Vector3(3, 0.02, 0.2)
+material = SubResource("StandardMaterial3D_xpeo5")
+
+[node name="Label_50_m" type="Label3D" parent="Geometry/SprintLane" unique_id=1172653719]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.8, 0.4, -25)
+pixel_size = 0.0035
+billboard = 1
+text = "50 m"
+font_size = 48
+outline_size = 8
+
+[node name="Label_Sprint_lane" type="Label3D" parent="Geometry/SprintLane" unique_id=1031233912]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 1.5, 26)
+pixel_size = 0.006
+billboard = 1
+text = "Sprint lane"
+font_size = 48
+outline_size = 8
+
+[node name="Pillars" type="Node3D" parent="Geometry" unique_id=1962656363]
+
+[node name="Pillar0" type="CSGCylinder3D" parent="Geometry/Pillars" unique_id=1974412063]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2, 14)
+use_collision = true
+radius = 0.6
+height = 4.0
+sides = 12
+material = SubResource("StandardMaterial3D_vxjf0")
+
+[node name="Pillar1" type="CSGCylinder3D" parent="Geometry/Pillars" unique_id=775045737]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 2, 18)
+use_collision = true
+radius = 0.6
+height = 4.0
+sides = 12
+material = SubResource("StandardMaterial3D_vxjf0")
+
+[node name="Pillar2" type="CSGCylinder3D" parent="Geometry/Pillars" unique_id=1397470073]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, 13)
+use_collision = true
+radius = 0.6
+height = 4.0
+sides = 12
+material = SubResource("StandardMaterial3D_vxjf0")
+
+[node name="Pillar3" type="CSGCylinder3D" parent="Geometry/Pillars" unique_id=353906138]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, 19)
+use_collision = true
+radius = 0.6
+height = 4.0
+sides = 12
+material = SubResource("StandardMaterial3D_vxjf0")
+
+[node name="Pillar4" type="CSGCylinder3D" parent="Geometry/Pillars" unique_id=2019950109]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 2, 12)
+use_collision = true
+radius = 0.6
+height = 4.0
+sides = 12
+material = SubResource("StandardMaterial3D_vxjf0")
+
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=1233900881]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 8)
+
+[node name="Player" parent="." unique_id=1895013422 instance=ExtResource("1_tw4dc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 8)
+starting_loadout_override = Array[StringName]([&"arming_sword", &"revolver", &"blunderbuss"])
+
+[node name="Label_Controls" type="Label3D" parent="." unique_id=1688196503]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 4)
+billboard = 1
+text = "WASD move · Shift sprint · Space jump · Ctrl/C crouch · F3 debug · Esc mouse"
+font_size = 48
+outline_size = 8
+
+[node name="Dummies" type="Node3D" parent="."]
+
+[node name="DummyPlain" parent="Dummies" instance=ExtResource("2_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -4, 0, 1)
+title = "Training Dummy"
+
+[node name="DummyArmoured" parent="Dummies" instance=ExtResource("2_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 1)
+title = "Armoured (50%)"
+armor = 0.5
+
+[node name="DummyBlocking" parent="Dummies" instance=ExtResource("2_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 4, 0, 1)
+title = "Blocking"
+block_always = true
+
+[node name="DummySparring" parent="Dummies" instance=ExtResource("2_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 8, 0, 1)
+title = "Sparring (attacks)"
+spar_enabled = true
+
+[node name="DummyUnparryable" parent="Dummies" instance=ExtResource("2_dummy")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 12, 0, 1)
+title = "Unparryable (dodge it)"
+spar_enabled = true
+spar_unparryable = true
+
+[node name="RifleStand" parent="." instance=ExtResource("3_stand")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 6)
+weapon_id = &"rifle"
+
+[node name="NavRegion" type="NavigationRegion3D" parent="."]
+script = ExtResource("4_nav")
+source = NodePath("../Geometry")
+
+[node name="Enemies" type="Node3D" parent="."]
+script = ExtResource("5_registry")
+
+[node name="ZoneArena" type="Area3D" parent="."]
+script = ExtResource("7_zone")
+zone_id = &"arena"
+starts_unlocked = true
+
+[node name="Shape" type="CollisionShape3D" parent="ZoneArena"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("Box_zone_arena")
+
+[node name="EnemySpawns" type="Node3D" parent="ZoneArena"]
+
+[node name="SpawnSouthWest" type="Marker3D" parent="ZoneArena/EnemySpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0.1, 24)
+script = ExtResource("6_spawn")
+
+[node name="SpawnSouthEast" type="Marker3D" parent="ZoneArena/EnemySpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.1, 24)
+script = ExtResource("6_spawn")
+
+[node name="SpawnWest" type="Marker3D" parent="ZoneArena/EnemySpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0.1, 2)
+script = ExtResource("6_spawn")
+
+[node name="SpawnNorth" type="Marker3D" parent="ZoneArena/EnemySpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.1, -22)
+script = ExtResource("6_spawn")
+
+[node name="ZoneAnnex" type="Area3D" parent="."]
+script = ExtResource("7_zone")
+zone_id = &"annex"
+
+[node name="Shape" type="CollisionShape3D" parent="ZoneAnnex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37.25, 1.5, 0)
+shape = SubResource("Box_zone_annex")
+
+[node name="SpawnAnnex" type="Marker3D" parent="ZoneAnnex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0.1, 0)
+script = ExtResource("6_spawn")
+
+[node name="Label_Annex" type="Label3D" parent="ZoneAnnex"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37, 3, 0)
+billboard = 1
+text = "Annex (locked zone)"
+font_size = 48
+outline_size = 8
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="AnnexGate" parent="Doors" instance=ExtResource("8_door")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -30, 0, -6)
+door_id = &"annex_gate"
+
+[node name="AnnexPostern" parent="Doors" instance=ExtResource("8_door")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -30, 0, 6)
+door_id = &"annex_postern"

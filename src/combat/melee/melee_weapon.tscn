@@ -1,0 +1,57 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/combat/melee/melee_weapon.gd" id="1_weapon"]
+[ext_resource type="Script" path="res://src/core/state_machine/state_machine.gd" id="2_machine"]
+[ext_resource type="Script" path="res://src/combat/melee/states/ready.gd" id="s0_ready"]
+[ext_resource type="Script" path="res://src/combat/melee/states/idle.gd" id="s1_idle"]
+[ext_resource type="Script" path="res://src/combat/melee/states/charging.gd" id="s2_charging"]
+[ext_resource type="Script" path="res://src/combat/melee/states/blocking.gd" id="s3_blocking"]
+[ext_resource type="Script" path="res://src/combat/melee/states/attacking.gd" id="s4_attacking"]
+[ext_resource type="Script" path="res://src/combat/melee/states/windup.gd" id="s5_windup"]
+[ext_resource type="Script" path="res://src/combat/melee/states/active.gd" id="s6_active"]
+[ext_resource type="Script" path="res://src/combat/melee/states/recovery.gd" id="s7_recovery"]
+[ext_resource type="Script" path="res://src/combat/melee/states/staggered.gd" id="s8_staggered"]
+
+[node name="MeleeWeapon" type="Node"]
+script = ExtResource("1_weapon")
+
+[node name="WeaponMachine" type="Node" parent="."]
+script = ExtResource("2_machine")
+tick_mode = 1
+autostart = false
+
+[node name="Ready" type="Node" parent="WeaponMachine"]
+script = ExtResource("s0_ready")
+allowed_transitions = Array[StringName]([&"Attacking", &"Windup", &"Staggered"])
+
+[node name="Idle" type="Node" parent="WeaponMachine/Ready"]
+script = ExtResource("s1_idle")
+allowed_transitions = Array[StringName]([&"Charging", &"Blocking"])
+
+[node name="Charging" type="Node" parent="WeaponMachine/Ready"]
+script = ExtResource("s2_charging")
+allowed_transitions = Array[StringName]([&"Idle", &"Blocking"])
+
+[node name="Blocking" type="Node" parent="WeaponMachine/Ready"]
+script = ExtResource("s3_blocking")
+allowed_transitions = Array[StringName]([&"Idle"])
+
+[node name="Attacking" type="Node" parent="WeaponMachine"]
+script = ExtResource("s4_attacking")
+allowed_transitions = Array[StringName]([&"Staggered"])
+
+[node name="Windup" type="Node" parent="WeaponMachine/Attacking"]
+script = ExtResource("s5_windup")
+allowed_transitions = Array[StringName]([&"Active", &"Blocking"])
+
+[node name="Active" type="Node" parent="WeaponMachine/Attacking"]
+script = ExtResource("s6_active")
+allowed_transitions = Array[StringName]([&"Recovery"])
+
+[node name="Recovery" type="Node" parent="WeaponMachine/Attacking"]
+script = ExtResource("s7_recovery")
+allowed_transitions = Array[StringName]([&"Idle", &"Charging", &"Windup"])
+
+[node name="Staggered" type="Node" parent="WeaponMachine"]
+script = ExtResource("s8_staggered")
+allowed_transitions = Array[StringName]([&"Idle"])

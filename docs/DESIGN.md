@@ -147,19 +147,48 @@ Three triggers:
 
 ### 6.1 Player stats (defaults, all in `PlayerDefaults.tres`)
 Health 100, regen only between waves (host option); Stamina 100 (regen 20/s after 1 s idle); walk/sprint speeds 4.5/7 m/s; jump; crouch.
+*Implemented in F010:* the class is `PlayerDefaults` (`src/data/player/player_defaults.gd`), shipped as `content/player/player_defaults/player_defaults.tres`. The controller design is in [ADR 0003](adr/0003-player-controller.md). In F010 only sprinting drains stamina (12/s); reaching 0 locks sprint until stamina regenerates to 30. Sprint is grounded and forward-only (within 45°). Crouch is hold or toggle (a player preference), with a ceiling check.
 
 ### 6.2 Loadout (D9)
 - Slot 1: Firearm A, Slot 2: Firearm B, Slot 3: Melee. Plus a single-use consumable quick slot (heal item, silver vial, throwable).
 - Swap, buy, and pick up replace slots. Each melee/firearm is a `WeaponData` resource.
+- *Implemented in F014* ([ADR 0007](adr/0007-firearms-loadout.md)):
+  - `Loadout` holds slots 1/2 (firearms) and 3 (melee), with per-slot ammo, and players spawn with melee out;
+  - keys 1/2/3 and the wheel switch weapons, with a short draw time;
+  - `Loadout.replace_slot()` is the purchase/pickup API.
 
 ### 6.3 Melee (D13) — the core of the game
 - **Light attack:** fast, low stamina, low stagger. **Heavy attack:** hold to charge, high damage/stagger, high stamina.
+  - *Implemented in F012* ([ADR 0005](adr/0005-melee.md)):
+    - LMB fires **on release**: full charge gives an overhead heavy; an earlier release gives a horizontal light.
+    - Lights alternate sides, and a light released near the end of recovery is buffered and chains into the next.
+    - Block during windup **feints**.
+    - Attacking needs stamina > 0, and the cost may exhaust you.
+    - Attacking or blocking slows you and stops sprinting.
+    - Swings are swept arcs that hit everything they touch (one hit per target). A wall in the arc **clangs** and ends the swing.
+    - Stagger builds **poise**; crossing `stagger_resist` staggers the target.
+    - A guard break staggers the blocker for 1 s.
 - **Block:** hold; reduces damage by `block_reduction`; drains stamina based on damage absorbed; 0 stamina = guard break and stagger.
+  - It only covers a **frontal arc**, `block_arc_deg` (default 120°), and only melee damage.
+  - A hit the remaining stamina can't pay for is still fully blocked, but drains stamina to 0 (guard break). The next hit lands in full.
+  - The math is in [ADR 0004](adr/0004-damage-pipeline.md).
 - **Parry:** a block pressed within the parry window (default 200 ms) stuns the attacker and opens a **riposte** window (bonus damage). Not all enemies are parryable (Abomination attacks must be dodged).
 - **Dodge:** brief i-frame sidestep/backstep costing stamina.
+- *Implemented in F013* ([ADR 0006](adr/0006-parry-dodge.md)):
+  - **Parry:**
+    - only a *fresh* block press opens the 200 ms window, measured in physics ticks (±1 frame);
+    - a missed window locks parrying out for 0.5 s;
+    - a parry negates the hit (no stamina) and stuns the attacker for `parry_stun_s`.
+  - **Riposte:** the parrier's next melee hit on that stunned attacker deals × `riposte_mult` and ignores block.
+  - **Dodge:**
+    - Alt + direction (a backstep without input): about 3 m over 0.3 s, with i-frames for the first 0.2 s;
+    - costs 20 stamina, with a 0.4 s cooldown;
+    - cancels block and recovery;
+    - the i-frames negate melee, bullets and blasts, but not falls or hazards.
+  - **Unparryable attacks** ignore parry *and* block, so they must be dodged.
 - **Hit detection:** server-authoritative; swing = a time-windowed shape query (`ShapeCast3D`) along the weapon's swing arc during the animation's "active frames". Clients play the swing instantly (prediction) and the server confirms hits.
 - **Weapon archetypes (MVP):** Arming Sword, Greatsword, Mace/Warhammer, Spear, Flail. Parameters: damage, reach, swing times, stamina cost, stagger, block power, parry window, special.
-- Melee damage grants points per hit; kills grant bonus points (headshot-equivalent is "weak point" hit).
+- Melee damage grants points per hit, with more for a weak-point hit and a bonus for a riposte. There is no kill bonus (§10.1).
 
 ### 6.4 Firearms
 Pistol-class and long-gun-class (flintlock-flavoured but cartridge-based for rate of fire): Revolver, Blunderbuss (shotgun-like), Rifle, Repeating Carbine, later Crossbow (silent, rare ammo). Each: damage, falloff, mag size, reserve cap, reload time, spread, recoil pattern, penetration.
@@ -167,9 +196,17 @@ Pistol-class and long-gun-class (flintlock-flavoured but cartridge-based for rat
 **Ammo scarcity (design requirement):**
 - Reserve ammo caps are low (default ~2 magazines).
 - Ammo is obtained from (a) rare world pickups, (b) wall-buy ammo purchases at a high point cost that scales per weapon tier, (c) cultist drops with low chance. Host multiplier `ammo_scarcity` (0.25×–3×) scales drops and costs.
+- *Implemented in F014* ([ADR 0007](adr/0007-firearms-loadout.md)):
+  - **Scarcity:** `ammo_scarcity` **divides every ammo grant** (including the spawn reserve) and **multiplies ammo costs**. Higher is scarcer, and caps are never scaled.
+  - **Firing:** semi-auto hitscan, with pellets and penetration (×0.6 per combatant passed). Accuracy is spread bloom; there's no view recoil.
+  - **Aiming and sprint:** RMB aims (tighter, slower, zoom). The gun is lowered while sprinting.
+  - **Reload:** an interruptible top-up, done per round on the revolver.
+  - **Guns:** revolver, blunderbuss, rifle.
 
 ### 6.5 Friendly fire
 Per-mode default in §3, host-toggle, plus `friendly_fire_scale` (0–200%). Melee friendly fire is always scaled by the same factor. Reflected/self-damage can be disabled independently.
+
+Cult-on-cult damage happens only from attacks flagged `hits_allies` (explosions, sweeps), scaled by `cult_friendly_fire_scale`. Ordinary cult melee never hurts other cultists. World damage (falls, hazards) ignores friendly-fire rules. Implemented in F011: see [ADR 0004](adr/0004-damage-pipeline.md).
 
 ---
 
@@ -184,6 +221,13 @@ Per-mode default in §3, host-toggle, plus `friendly_fire_scale` (0–200%). Mel
 | Cultist Gunman (later) | Ranged | Scarce, dangerous |
 
 Common AI: navmesh pathing to nearest valid target (NOT traitors); simple melee attack state machine; attack telegraphs that are parry-readable. Perf budget: ≥60 active AI at 60 fps on host; use group/tick throttling (§12.5).
+
+> Implemented in F015 (Acolyte): see [ADR 0008](adr/0008-enemy-ai.md).
+> - **Movement:** a navmesh baked at map load, RVO avoidance (enemies do not collide with each other, but do collide with players). Path and target updates run on staggered timers.
+> - **Targeting:** the nearest living Hunter, but whoever last damaged the enemy takes priority for `aggro_memory_s`.
+> - **Attack:** a telegraph (glow + raised arm) that tracks slowly, then the direction locks and it lunges with a `MeleeSweep` swing, followed by a punishable recovery.
+> - **Reactions:** poise stagger and parry stun interrupt it.
+> - **Death:** emits `Events.enemy_killed`.
 
 ### 7.2 Special enemies (L4D2-inspired, re-themed)
 
@@ -274,10 +318,10 @@ Single `Resource` replicated to all clients when the lobby locks. It is implemen
 - `traitors_enabled`, `traitor_count_mode` (ratio/exact), `hunters_per_traitor` (default 5), `traitors_know_each_other`, `exposed_bounty`
 
 **Rules**
-- `friendly_fire` + `friendly_fire_scale`, `self_damage`, `final_round` (default 12), `intermission_s`, `player_health_mult`, `regen_mode`, `conversion_enabled` (Betrayal default on), `respawn_delay_cult_s`, `coop_respawn_rule`
+- `friendly_fire` + `friendly_fire_scale`, `self_damage`, `cult_friendly_fire_scale` (F011), `final_round` (default 12), `intermission_s`, `player_health_mult`, `regen_mode`, `conversion_enabled` (Betrayal default on), `respawn_delay_cult_s`, `coop_respawn_rule`
 
 **Economy**
-- `points_per_damage_mult`, `starting_points`, `kill_bonus_mult`, `shop_price_mult`, `ammo_scarcity`, `door_cost_mult`, `loot_quality`
+- `points_per_damage_mult` (F016: scales points per damage before rounding), `starting_points`, `shop_price_mult`, `ammo_scarcity` (F014: divides ammo grants, multiplies ammo costs, never scales caps), `door_cost_mult`, `loot_quality`
 
 **Enemies / Waves**
 - `wave_set` (resource), `enemy_health_mult`, `enemy_damage_mult`, `enemy_speed_mult`, `special_freq_mult`, `special_cap_override`, `player_scale_curve`
@@ -295,13 +339,20 @@ Validation: `MatchSettings.validate()` returns warnings (e.g., "Traitor mode wit
 ## 10. Economy, Shops & Progression
 
 ### 10.1 Points (per player)
-- **Earned by dealing damage** to cultists (not kills only): `points = damage_dealt × tier_multiplier`, so supporting fire is rewarded. Bonuses: kill, weak-point, parry-riposte, special kill, exposed-traitor kill.
+- **Earned by dealing damage** to cultists (not kills only): `points = damage_dealt × tier_multiplier`, so supporting fire is rewarded. Bonuses: weak-point, parry-riposte, exposed-traitor kill.
+- *Implemented in F016* ([ADR 0009](adr/0009-points-economy.md)):
+  - **Formula:** `applied × points_per_damage_mult × category mult`. The category is the target's: COMMON 1.0, SPECIAL 1.5, BOSS 2.0.
+  - **Bonuses:** ×1.5 on a weak-point hit, +50 for a landed riposte.
+  - **Rounding:** each award is rounded **up** to a multiple of 10, so any damaging hit pays at least 10.
+  - **No kill bonus.** Overkill never pays, because only damage actually removed counts.
+  - **Who earns:** only a player's hostile hit on a cult target (training dummies included).
+  - **Tuning:** the numbers are in `content/economy/economy_rules`.
 - Points are **per-player and private**; not shareable by default (host option `allow_gifting`).
 - Not earned for friendly-fire damage (negative penalty option).
 - Traitors earn points from cultists normally (cover).
 
 ### 10.2 Spend
-1. **Doors/barricades** — open zones (`DoorData.cost`). Opening zones expands spawn areas, unlocks better loot (§10.4).
+1. **Doors/barricades** — open zones (`DoorData.cost` × `door_cost_mult`, F017). Opening zones expands spawn areas, unlocks better loot (§10.4).
 2. **Wall-buy stations** — weapons and ammo; costly ammo to enforce scarcity.
 3. **Perk altars** (Victorian-gothic "Sacraments"): e.g., *Iron Constitution* (+HP), *Second Wind* (stamina regen), *Sure Grip* (faster reload), *Riposte* (stronger parry), *Alms of the Dead* (extra loot), *Hallowed Edge* (damage vs specials). Max perks configurable (default 4).
 4. **Mystery chest / Reliquary** — random weapon for a fee (later milestone).
@@ -321,6 +372,11 @@ Zones have `LootTable` resources; deeper zones carry higher tier weights. Pickup
 - **MVP map ("Ashgrave Cathedral & Cloister"):** 5–6 zones, hub start (Crypt Chapel), progressing to nave, cloister, bell tower, catacombs, and a final sanctum for Round 12. Greybox with clear sightlines/ambush spots, choke points, and loops for kiting.
 - **Gameplay-affordances to include:** cult spawn points (player-controlled specials), safe-ish retreat corners, silver-vial pickup spots, sabotage spots for traitors (e.g., collapsing a door barricade) — *sabotage is a stretch goal, not in MVP.*
 - **Navigation:** one `NavigationRegion3D` per zone; doors toggle navmesh regions/links.
+- *Implemented in F017* ([ADR 0010](adr/0010-doors-zones.md)):
+  - **Zones:** a `Zone` is an Area3D with a `zone_id`. Its child `EnemySpawnPoint`s are active only while it's unlocked, and the start zone uses `starts_unlocked`.
+  - **Doors:** a `Door` uses `DoorData`. Pressing E spends `PointRules.door_price` (× `door_cost_mult`), and the door opens **permanently**. Opening any door into a zone unlocks it, and other doors into the same zone are bought separately.
+  - **Navigation:** one navmesh is baked with closed doors as walls (`nav_blockers`). Each door enables its `NavigationLink3D` when opened, so the map is never re-baked.
+  - **Announcements:** every door opening is announced publicly ("Player N opened the X"), without the cost.
 - **Verticality:** moderate; no climbing mechanics in MVP.
 - Level data files: `maps/<map_id>/map.tscn`, `map_data.tres`.
 
@@ -361,7 +417,7 @@ Zones have `LootTable` resources; deeper zones carry higher tier weights. Pickup
 
 ### 12.3 Core systems (component style)
 - **Player** is a `CharacterBody3D` with child components: `HealthComponent`, `StaminaComponent`, `LoadoutComponent`, `RoleComponent` (server-owned), `PointsComponent`, `PerkComponent`, `ExposureComponent`.
-- **Damage pipeline:** a single `DamageEvent` object (source, target, amount, type, weakpoint, weapon) processed by `DamageService` on the server → applies mods (block/parry/perks/FF scale) → emits `damage_applied` signal → `EconomyService` awards points, `RoleService` checks exposure, `ConversionService` handles death.
+- **Damage pipeline** (implemented in F011; fixed stage order in [ADR 0004](adr/0004-damage-pipeline.md); entry point `Combat.apply()`): a single `DamageEvent` object (source, target, amount, type, weakpoint, weapon) processed by `DamageService` on the server → applies mods (block/parry/perks/FF scale) → emits `damage_applied` signal → `EconomyService` awards points, `RoleService` checks exposure, `ConversionService` handles death.
 - **Event bus:** autoload `Events` with typed signals (`wave_started`, `player_died`, `player_exposed`, `door_opened`, …). Systems communicate through signals, not direct node paths.
 - **State machines:** a reusable hierarchical `StateMachine` (node + `State` children) for enemies, weapons and match flow. See [ADR 0001](adr/0001-hierarchical-state-machine.md).
 
@@ -405,9 +461,9 @@ Each ID is a self-contained work item. Check dependencies first. "AC" = acceptan
 - **F012 Melee v1.** Light/heavy, swing arcs, hit detection, stamina cost, block. *AC:* can kill a training dummy using a sword; guard break works.
 - **F013 Parry/dodge/riposte.** *AC:* parry window correct to ±1 frame; riposte bonus applied.
 - **F014 Firearms v1.** Hitscan, mag/reserve ammo, reload, recoil; 2-firearm + melee loadout & swap. *AC:* ammo caps enforced; scarcity multiplier applied in tests.
-- **F015 Basic cultist AI (Acolyte).** Navmesh chase + telegraphed melee. *AC:* 30 acolytes chase a player without frame drops.
-- **F016 Points economy.** Damage→points, point sinks API. *AC:* unit tests for point rules.
-- **F017 Doors & zones.** `Zone`, `Door` with cost, nav toggling. *AC:* opening a door unlocks a zone and spawn points.
+- **F015 Basic cultist AI (Acolyte).** Navmesh chase + telegraphed melee. *AC:* 30 acolytes chase a player without frame drops. *(Tested headless at 60, the §12.5 target, against an AI time budget per tick; rendering FPS is a manual check.)*
+- **F016 Points economy.** Damage→points, point sinks API. *AC:* unit tests for point rules. *(Done: see [ADR 0009](adr/0009-points-economy.md); there is no kill bonus.)*
+- **F017 Doors & zones.** `Zone`, `Door` with cost, nav toggling. *AC:* opening a door unlocks a zone and spawn points. *(Done: see [ADR 0010](adr/0010-doors-zones.md). Pickups are not part of F017.)*
 - **F018 Wall-buy & ammo stations, perk altar.** *AC:* purchases deduct points, replace loadout slots correctly.
 - **F019 Wave director v1 + round loop.** Spawn by budget, intermission, round counter to 12. *AC:* a bot-assisted run completes 12 waves headless.
 

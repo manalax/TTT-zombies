@@ -44,6 +44,9 @@ const MAX_LOADOUT_MELEE := 1
 @export var friendly_fire: bool = true
 @export_range(0.0, 2.0, 0.05) var friendly_fire_scale: float = 1.0
 @export var self_damage: bool = true
+## Scales cult-on-cult damage from attacks flagged hits_allies (explosions, sweeps). Ordinary
+## cult melee never hurts other cultists.
+@export_range(0.0, 2.0, 0.05) var cult_friendly_fire_scale: float = 1.0
 @export_range(3, 30, 1) var final_round: int = 12
 @export_range(0.0, 300.0, 1.0, "suffix:s") var intermission_s: float = 30.0
 @export var intermission_skip_vote: bool = true
@@ -59,9 +62,8 @@ const MAX_LOADOUT_MELEE := 1
 @export_group("Economy")
 @export_range(0.0, 10.0, 0.05) var points_per_damage_mult: float = 1.0
 @export_range(0, 50000, 50) var starting_points: int = 500
-@export_range(0.0, 10.0, 0.05) var kill_bonus_mult: float = 1.0
 @export_range(0.1, 10.0, 0.05) var shop_price_mult: float = 1.0
-## Scales ammo drops and ammo costs (§6.4). Lower = scarcer.
+## Divides ammo grants and multiplies ammo costs (§6.4, ADR 0007). Higher = scarcer.
 @export_range(0.25, 3.0, 0.05) var ammo_scarcity: float = 1.0
 @export_range(0.0, 10.0, 0.05) var door_cost_mult: float = 1.0
 @export_range(0.1, 5.0, 0.05) var loot_quality: float = 1.0
@@ -126,13 +128,12 @@ func _validate_ranges(report: ValidationReport) -> void:
 	report.check_min(s, "exposed_bounty", exposed_bounty, 0)
 	report.check_positive(s, "witness_radius_m", witness_radius_m)
 	report.check_range(s, "friendly_fire_scale", friendly_fire_scale, 0.0, 2.0)
+	report.check_range(s, "cult_friendly_fire_scale", cult_friendly_fire_scale, 0.0, 2.0)
 	report.check_range(s, "final_round", final_round, 1, 30)
 	report.check_min(s, "intermission_s", intermission_s, 0.0)
 	report.check_positive(s, "player_health_mult", player_health_mult)
 	report.check_min(s, "respawn_delay_cult_s", respawn_delay_cult_s, 0.0)
-	for field: String in [
-		"points_per_damage_mult", "kill_bonus_mult", "door_cost_mult", "special_freq_mult"
-	]:
+	for field: String in ["points_per_damage_mult", "door_cost_mult", "special_freq_mult"]:
 		report.check_min(s, field, float(get(field)), 0.0)
 	for field: String in [
 		"shop_price_mult",

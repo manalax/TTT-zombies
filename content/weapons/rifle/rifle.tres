@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://src/data/weapons/firearm_stats.gd" id="1_fstat"]
+[ext_resource type="Script" path="res://src/data/weapons/weapon_data.gd" id="2_wdata"]
+
+[sub_resource type="Resource" id="Resource_fs"]
+script = ExtResource("1_fstat")
+damage = 90.0
+falloff_start_m = 40.0
+falloff_end_m = 80.0
+min_damage_mult = 0.7
+weakpoint_mult = 2.5
+mag_size = 5
+reserve_cap = 10
+reload_s = 2.8
+ammo_cost = 500
+fire_interval_s = 1.0
+spread_deg = 0.2
+spread_bloom_deg = 2.5
+spread_recovery_deg_s = 4.0
+ads_spread_mult = 0.25
+penetration = 1
+
+[resource]
+script = ExtResource("2_wdata")
+slot = 0
+tier = 3
+wall_cost = 2000
+firearm_stats = SubResource("Resource_fs")
+id = &"rifle"
+display_name = "Hunting Rifle"
+description = "A long-barrelled rifle. One round passes through the first heretic into the next."

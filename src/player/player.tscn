@@ -1,0 +1,155 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://src/player/player_camera.gd" id="2_camera"]
+[ext_resource type="Script" path="res://src/player/input/local_input_source.gd" id="3_input"]
+[ext_resource type="Script" path="res://src/player/components/stamina_component.gd" id="4_stamina"]
+[ext_resource type="Script" path="res://src/economy/points_component.gd" id="20_points"]
+[ext_resource type="Script" path="res://src/core/state_machine/state_machine.gd" id="5_machine"]
+[ext_resource type="Script" path="res://src/player/movement/states/grounded.gd" id="6_grounded"]
+[ext_resource type="Script" path="res://src/player/movement/states/idle.gd" id="7_idle"]
+[ext_resource type="Script" path="res://src/player/movement/states/walk.gd" id="8_walk"]
+[ext_resource type="Script" path="res://src/player/movement/states/sprint.gd" id="9_sprint"]
+[ext_resource type="Script" path="res://src/player/movement/states/crouch.gd" id="10_crouch"]
+[ext_resource type="Script" path="res://src/player/movement/states/airborne.gd" id="11_airborne"]
+[ext_resource type="Script" path="res://src/player/movement/states/dead.gd" id="12_dead"]
+[ext_resource type="Script" path="res://src/combat/health_component.gd" id="13_health"]
+[ext_resource type="Script" path="res://src/combat/hurtbox.gd" id="14_hurtbox"]
+[ext_resource type="PackedScene" path="res://src/combat/melee/melee_weapon.tscn" id="15_melee"]
+[ext_resource type="Script" path="res://src/player/viewmodel/melee_viewmodel.gd" id="16_viewmodel"]
+[ext_resource type="Script" path="res://src/player/movement/states/dodge.gd" id="17_dodge"]
+[ext_resource type="PackedScene" path="res://src/combat/firearms/firearm.tscn" id="18_firearm"]
+[ext_resource type="Script" path="res://src/player/loadout/loadout.gd" id="19_loadout"]
+[ext_resource type="Script" path="res://src/player/viewmodel/firearm_viewmodel.gd" id="20_gunvm"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hurt"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_head"]
+radius = 0.2
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.35, 0.42, 0.55, 1)
+
+[node name="Player" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 7
+floor_constant_speed = true
+floor_snap_length = 0.3
+script = ExtResource("1_player")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+layers = 2
+cast_shadow = 0
+mesh = SubResource("CapsuleMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_body")
+
+[node name="Head" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
+
+[node name="HeadHurtbox" type="Area3D" parent="Head" node_paths=PackedStringArray("health")]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("14_hurtbox")
+health = NodePath("../../HealthComponent")
+is_weakpoint = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Head/HeadHurtbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
+shape = SubResource("SphereShape3D_head")
+
+[node name="Camera" type="Camera3D" parent="Head"]
+cull_mask = 1048573
+current = true
+fov = 90.0
+near = 0.05
+script = ExtResource("2_camera")
+
+[node name="MeleeViewmodel" type="Node3D" parent="Head/Camera"]
+script = ExtResource("16_viewmodel")
+
+[node name="FirearmViewmodel" type="Node3D" parent="Head/Camera"]
+script = ExtResource("20_gunvm")
+
+[node name="BodyHurtbox" type="Area3D" parent="." node_paths=PackedStringArray("health")]
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("14_hurtbox")
+health = NodePath("../HealthComponent")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BodyHurtbox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_hurt")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("13_health")
+faction = 0
+
+[node name="LocalInputSource" type="Node" parent="."]
+script = ExtResource("3_input")
+
+[node name="PointsComponent" type="Node" parent="."]
+script = ExtResource("20_points")
+
+[node name="StaminaComponent" type="Node" parent="."]
+script = ExtResource("4_stamina")
+
+[node name="MeleeWeapon" parent="." instance=ExtResource("15_melee")]
+
+[node name="Firearm" parent="." instance=ExtResource("18_firearm")]
+
+[node name="Loadout" type="Node" parent="."]
+script = ExtResource("19_loadout")
+
+[node name="MovementMachine" type="Node" parent="."]
+script = ExtResource("5_machine")
+tick_mode = 1
+autostart = false
+
+[node name="Grounded" type="Node" parent="MovementMachine"]
+script = ExtResource("6_grounded")
+allowed_transitions = Array[StringName]([&"Airborne", &"Dead"])
+
+[node name="Idle" type="Node" parent="MovementMachine/Grounded"]
+script = ExtResource("7_idle")
+allowed_transitions = Array[StringName]([&"Walk", &"Sprint", &"Crouch", &"Dodge"])
+
+[node name="Walk" type="Node" parent="MovementMachine/Grounded"]
+script = ExtResource("8_walk")
+allowed_transitions = Array[StringName]([&"Idle", &"Sprint", &"Crouch", &"Dodge"])
+
+[node name="Sprint" type="Node" parent="MovementMachine/Grounded"]
+script = ExtResource("9_sprint")
+allowed_transitions = Array[StringName]([&"Idle", &"Walk", &"Crouch", &"Dodge"])
+
+[node name="Crouch" type="Node" parent="MovementMachine/Grounded"]
+script = ExtResource("10_crouch")
+allowed_transitions = Array[StringName]([&"Idle", &"Walk", &"Sprint", &"Dodge"])
+
+[node name="Dodge" type="Node" parent="MovementMachine/Grounded"]
+script = ExtResource("17_dodge")
+allowed_transitions = Array[StringName]([&"Idle", &"Walk", &"Sprint", &"Crouch"])
+
+[node name="Airborne" type="Node" parent="MovementMachine"]
+script = ExtResource("11_airborne")
+allowed_transitions = Array[StringName]([&"Idle", &"Walk", &"Sprint", &"Crouch", &"Dead"])
+
+[node name="Dead" type="Node" parent="MovementMachine"]
+script = ExtResource("12_dead")
+allowed_transitions = Array[StringName]([&"Idle"])

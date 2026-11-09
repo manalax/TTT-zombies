@@ -1,0 +1,173 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/world/dev/training_dummy.gd" id="1_dummy"]
+[ext_resource type="Script" path="res://src/combat/health_component.gd" id="2_health"]
+[ext_resource type="Script" path="res://src/combat/hurtbox.gd" id="3_hurtbox"]
+[ext_resource type="Script" path="res://src/player/components/stamina_component.gd" id="4_stamina"]
+[ext_resource type="Script" path="res://src/combat/poise_component.gd" id="5_poise"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_body"]
+size = Vector3(0.7, 1.8, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="Mat_dummy"]
+albedo_color = Color(0.55, 0.45, 0.32, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_head"]
+albedo_color = Color(0.7, 0.3, 0.25, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_torso"]
+size = Vector3(0.5, 0.6, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_torso"]
+size = Vector3(0.5, 0.6, 0.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_arm"]
+size = Vector3(0.14, 0.6, 0.14)
+
+[sub_resource type="BoxMesh" id="BoxMesh_arm"]
+size = Vector3(0.14, 0.6, 0.14)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_leg"]
+size = Vector3(0.18, 0.9, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_leg"]
+size = Vector3(0.18, 0.9, 0.2)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_head"]
+radius = 0.15
+
+[sub_resource type="SphereMesh" id="SphereMesh_head"]
+radius = 0.15
+height = 0.3
+
+[sub_resource type="BoxMesh" id="BoxMesh_front"]
+size = Vector3(0.12, 0.12, 0.05)
+
+[node name="TrainingDummy" type="StaticBody3D"]
+collision_layer = 4
+collision_mask = 0
+script = ExtResource("1_dummy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("BoxShape3D_body")
+
+[node name="HealthComponent" type="Node" parent="."]
+script = ExtResource("2_health")
+max_health = 200.0
+
+[node name="StaminaComponent" type="Node" parent="."]
+script = ExtResource("4_stamina")
+
+[node name="PoiseComponent" type="Node" parent="."]
+script = ExtResource("5_poise")
+
+[node name="Label" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.25, 0)
+billboard = 1
+pixel_size = 0.004
+font_size = 40
+outline_size = 8
+text = "Training Dummy"
+
+[node name="FrontMarker" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, -0.17)
+mesh = SubResource("BoxMesh_front")
+surface_material_override/0 = SubResource("Mat_head")
+
+[node name="Torso" type="Area3D" parent="." node_paths=PackedStringArray("health")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("3_hurtbox")
+health = NodePath("../HealthComponent")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Torso"]
+shape = SubResource("BoxShape3D_torso")
+
+[node name="Mesh" type="MeshInstance3D" parent="Torso"]
+mesh = SubResource("BoxMesh_torso")
+surface_material_override/0 = SubResource("Mat_dummy")
+
+[node name="Head" type="Area3D" parent="." node_paths=PackedStringArray("health")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.68, 0)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("3_hurtbox")
+health = NodePath("../HealthComponent")
+is_weakpoint = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Head"]
+shape = SubResource("SphereShape3D_head")
+
+[node name="Mesh" type="MeshInstance3D" parent="Head"]
+mesh = SubResource("SphereMesh_head")
+surface_material_override/0 = SubResource("Mat_head")
+
+[node name="ArmL" type="Area3D" parent="." node_paths=PackedStringArray("health")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.33, 1.2, 0)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("3_hurtbox")
+health = NodePath("../HealthComponent")
+damage_mult = 0.75
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ArmL"]
+shape = SubResource("BoxShape3D_arm")
+
+[node name="Mesh" type="MeshInstance3D" parent="ArmL"]
+mesh = SubResource("BoxMesh_arm")
+surface_material_override/0 = SubResource("Mat_dummy")
+
+[node name="ArmR" type="Area3D" parent="." node_paths=PackedStringArray("health")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.33, 1.2, 0)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("3_hurtbox")
+health = NodePath("../HealthComponent")
+damage_mult = 0.75
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="ArmR"]
+shape = SubResource("BoxShape3D_arm")
+
+[node name="Mesh" type="MeshInstance3D" parent="ArmR"]
+mesh = SubResource("BoxMesh_arm")
+surface_material_override/0 = SubResource("Mat_dummy")
+
+[node name="LegL" type="Area3D" parent="." node_paths=PackedStringArray("health")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.12, 0.45, 0)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("3_hurtbox")
+health = NodePath("../HealthComponent")
+damage_mult = 0.75
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LegL"]
+shape = SubResource("BoxShape3D_leg")
+
+[node name="Mesh" type="MeshInstance3D" parent="LegL"]
+mesh = SubResource("BoxMesh_leg")
+surface_material_override/0 = SubResource("Mat_dummy")
+
+[node name="LegR" type="Area3D" parent="." node_paths=PackedStringArray("health")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 0.45, 0)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("3_hurtbox")
+health = NodePath("../HealthComponent")
+damage_mult = 0.75
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="LegR"]
+shape = SubResource("BoxShape3D_leg")
+
+[node name="Mesh" type="MeshInstance3D" parent="LegR"]
+mesh = SubResource("BoxMesh_leg")
+surface_material_override/0 = SubResource("Mat_dummy")

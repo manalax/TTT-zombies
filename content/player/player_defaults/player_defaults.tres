@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="PlayerDefaults" format=3]
+
+[ext_resource type="Script" path="res://src/data/player/player_defaults.gd" id="1_pdef"]
+
+[resource]
+script = ExtResource("1_pdef")
+id = &"player_defaults"
+display_name = "Player Defaults"
+description = "Baseline Hunter stats (DESIGN §6.1). Placeholder numbers; tune in playtests."

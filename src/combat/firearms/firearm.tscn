@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/combat/firearms/firearm.gd" id="1_firearm"]
+[ext_resource type="Script" path="res://src/core/state_machine/state_machine.gd" id="2_machine"]
+[ext_resource type="Script" path="res://src/combat/firearms/states/ready.gd" id="3_ready"]
+[ext_resource type="Script" path="res://src/combat/firearms/states/reloading.gd" id="4_reloading"]
+[ext_resource type="Script" path="res://src/combat/firearms/states/lowered.gd" id="5_lowered"]
+
+[node name="Firearm" type="Node"]
+script = ExtResource("1_firearm")
+
+[node name="FirearmMachine" type="Node" parent="."]
+script = ExtResource("2_machine")
+tick_mode = 1
+autostart = false
+
+[node name="Ready" type="Node" parent="FirearmMachine"]
+script = ExtResource("3_ready")
+allowed_transitions = Array[StringName]([&"Reloading", &"Lowered"])
+
+[node name="Reloading" type="Node" parent="FirearmMachine"]
+script = ExtResource("4_reloading")
+allowed_transitions = Array[StringName]([&"Ready", &"Lowered"])
+
+[node name="Lowered" type="Node" parent="FirearmMachine"]
+script = ExtResource("5_lowered")
+allowed_transitions = Array[StringName]([&"Ready"])

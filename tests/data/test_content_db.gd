@@ -30,6 +30,8 @@ func test_shipped_content_is_indexed() -> void:
 		&"DoorData",
 		&"LootTable",
 		&"MatchSettings",
+		&"PlayerDefaults",
+		&"EconomyRules",
 	]:
 		(
 			assert_bool(type in ContentDB.get_types())

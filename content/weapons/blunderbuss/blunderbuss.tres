@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3]
+
+[ext_resource type="Script" path="res://src/data/weapons/firearm_stats.gd" id="1_fstat"]
+[ext_resource type="Script" path="res://src/data/weapons/weapon_data.gd" id="2_wdata"]
+
+[sub_resource type="Resource" id="Resource_fs"]
+script = ExtResource("1_fstat")
+damage = 12.0
+pellets = 8
+falloff_start_m = 4.0
+falloff_end_m = 12.0
+min_damage_mult = 0.2
+weakpoint_mult = 1.5
+mag_size = 2
+reserve_cap = 6
+reload_s = 2.6
+ammo_cost = 400
+fire_interval_s = 0.6
+spread_deg = 6.0
+spread_bloom_deg = 2.0
+max_bloom_deg = 8.0
+ads_spread_mult = 0.75
+
+[resource]
+script = ExtResource("2_wdata")
+slot = 0
+tier = 2
+wall_cost = 1250
+firearm_stats = SubResource("Resource_fs")
+id = &"blunderbuss"
+display_name = "Blunderbuss"
+description = "A brass-mouthed scattergun. Devastating up close, useless beyond."
