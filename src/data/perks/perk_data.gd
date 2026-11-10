@@ -2,7 +2,7 @@ class_name PerkData
 extends GameData
 ## A purchasable perk ("Sacrament") at a perk altar (DESIGN §10.2).
 
-## Stat keys the player systems understand. Unknown keys warn (new stats arrive with F073).
+## Stat keys the player systems understand. Unknown keys warn (new stats arrive with F053).
 const KNOWN_STATS: Array[StringName] = [
 	&"max_health_add",
 	&"stamina_regen_mult",

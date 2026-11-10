@@ -29,7 +29,7 @@ It builds on F016 (`try_spend`, `PointRules.door_price`) and F015 (the runtime n
   - Box-shape children define the volume for `contains(point)`, which F019 can use for "zones near players".
   - The area doesn't monitor anything (no physics cost).
 - **Spawn gating:** an `EnemySpawnPoint` belongs to its nearest `Zone` ancestor. `is_active()` is true with no zone, or when that zone is unlocked. `EnemyRegistry.spawn_many` (and so F10/Shift+F10) only uses active points.
-- **`ambient_spawns_in_closed_zones` is F019's job.** Enemies spawned in a locked zone can't reach anyone until a door opens.
+- **`ambient_spawns_in_closed_zones` was moved to F044 by F019** (ADR 0012). Enemies spawned in a locked zone can't reach anyone until a door opens.
 
 ### Doors
 - **`Door`** (StaticBody3D on WORLD, group `nav_blockers`) reads `DoorData` (`cost`, `unlocks_zone_id`, `prompt_text`) from ContentDB.
@@ -59,10 +59,10 @@ It builds on F016 (`try_spend`, `PointRules.door_price`) and F015 (the runtime n
 - The owner decides what using it does, including charging: the door spends, the rifle stand swaps. `cost` is only for the prompt and the affordability check.
 - `Player.get_interact_target()` casts the eye ray (WORLD, `interact_range_m`) and returns the collider's `Interactable`. `try_interact()` uses it, or emits `interact_denied(reason)`.
 - **HUD (local):** the prompt above the bottom centre, red when unusable, and a 1 s "Not enough points" flash on a denied press.
-- F018 wall-buys, ammo stations and perk altars use the same component.
+- F018 wall-buys, ammo stations and perk altars use the same component, with a per-viewer `updater` and `disabled_text` (ADR 0011). Disabled prompts drop the "E:" prefix. The rifle stand was retired.
 
 ### Feed
-`Events.door_opened` → a public `TempHud` feed line, "Player N opened the X". It lasts 4 s, at most 4 lines are shown, and the cost isn't shown. It's a Betrayal trust signal (who spends where). Real player names arrive with the lobby (F030/F035).
+`Events.door_opened` → a public `TempHud` feed line, "Player N opened the X". It lasts 4 s, at most 4 lines are shown, and the cost isn't shown. It's a Betrayal trust signal (who spends where). Real player names arrive with the lobby (F020/F025).
 
 ### Sandbox
 - The arena is zone `arena` (start). The four existing spawn points live under it.
@@ -72,7 +72,7 @@ It builds on F016 (`try_spend`, `PointRules.door_price`) and F015 (the runtime n
 
 ## Consequences
 - **F018:** stations add an `Interactable` and spend with `try_spend(PointRules.shop_price/ammo_price(...))`.
-- **F019:** spawn only at `is_active()` points; use `Zone.contains` for proximity; ambient closed-zone spawns are its decision.
-- **F031/F033:** clients mirror `Door.is_open` and `Zone.unlocked` (e.g. via `door_opened` / `zone_unlocked` RPCs); only the host calls `open()`/`unlock()`.
-- **Pickups** (ammo drops, the death points bag, zone loot from `LootTable`) aren't in F017. They come with F044 (bags) and F073 (consumables) or a dedicated feature.
+- **F019:** spawn only at `is_active()` points; use `Zone.contains` for proximity; ambient closed-zone spawns were deferred to F044 (ADR 0012).
+- **F021/F023:** clients mirror `Door.is_open` and `Zone.unlocked` (e.g. via `door_opened` / `zone_unlocked` RPCs); only the host calls `open()`/`unlock()`.
+- **Pickups** (ammo drops, the death points bag, zone loot from `LootTable`) aren't in F017. They come with F034 (bags) and F053 (consumables) or a dedicated feature.
 - **Lint:** `Player` now exceeds 20 public methods; it's the facade used by states, weapons, the HUD and tests, so it carries `# gdlint:disable=max-public-methods`.

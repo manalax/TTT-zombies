@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://src/player/input/local_input_source.gd" id="3_input"]
 [ext_resource type="Script" path="res://src/player/components/stamina_component.gd" id="4_stamina"]
 [ext_resource type="Script" path="res://src/economy/points_component.gd" id="20_points"]
+[ext_resource type="Script" path="res://src/player/components/perk_component.gd" id="21_perks"]
 [ext_resource type="Script" path="res://src/core/state_machine/state_machine.gd" id="5_machine"]
 [ext_resource type="Script" path="res://src/player/movement/states/grounded.gd" id="6_grounded"]
 [ext_resource type="Script" path="res://src/player/movement/states/idle.gd" id="7_idle"]
@@ -106,6 +107,9 @@ script = ExtResource("3_input")
 
 [node name="PointsComponent" type="Node" parent="."]
 script = ExtResource("20_points")
+
+[node name="PerkComponent" type="Node" parent="."]
+script = ExtResource("21_perks")
 
 [node name="StaminaComponent" type="Node" parent="."]
 script = ExtResource("4_stamina")

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="MatchSettings" format=3]
 
 [ext_resource type="Script" path="res://src/data/match/match_settings.gd" id="1_7vl4a"]
-[ext_resource type="Resource" path="res://content/waves/sets/test_short/test_short.tres" id="2_6pg2d"]
+[ext_resource type="Resource" path="res://content/waves/sets/dev_twelve/dev_twelve.tres" id="2_6pg2d"]
 
 [resource]
 script = ExtResource("1_7vl4a")

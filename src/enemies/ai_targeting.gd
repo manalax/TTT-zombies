@@ -1,13 +1,13 @@
 class_name AITargeting
 extends RefCounted
 ## Who cultist AI may attack, and which one it picks (docs/adr/0008-enemy-ai.md).
-## Every AI target decision goes through here so F041 can exclude hidden traitors in one place.
+## Every AI target decision goes through here so F031 can exclude hidden traitors in one place.
 
 ## Group joined by every body AI may consider (players now; decoys later).
 const GROUP := &"ai_targets"
 
 
-## A living Hunter. F041: hidden traitors (and DESIGN Q1: all traitors) return false here.
+## A living Hunter. F031: hidden traitors (and DESIGN Q1: all traitors) return false here.
 static func is_valid_target(body: Node3D) -> bool:
 	if body == null or not is_instance_valid(body) or not body.is_inside_tree():
 		return false

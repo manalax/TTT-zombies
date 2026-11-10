@@ -20,7 +20,7 @@ const TIMER_EPSILON := 0.000001
 
 ## Multiplayer peer id of a player combatant (0 = AI / world object).
 var peer_id: int = 0
-## Replicated enemy/object id (F033). 0 = none.
+## Replicated enemy/object id (F023). 0 = none.
 var net_id: int = 0
 var current_health: float = 100.0
 ## Null = this combatant cannot block.
@@ -44,6 +44,16 @@ func _ready() -> void:
 func setup(p_max_health: float) -> void:
 	max_health = p_max_health
 	reset()
+
+
+## Changes the maximum; current health moves by the same amount (clamped to 1..max while
+## alive). Used by perks such as Iron Constitution.
+func set_max(value: float) -> void:
+	var diff := value - max_health
+	max_health = maxf(value, 1.0)
+	if not _dead:
+		current_health = clampf(current_health + diff, 1.0, max_health)
+	health_changed.emit(current_health, max_health)
 
 
 func reset() -> void:

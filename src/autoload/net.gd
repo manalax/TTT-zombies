@@ -1,7 +1,7 @@
 extends Node
 ## Networking facade (DESIGN §12.2).
 ##
-## Owns the transport abstraction (ENet/Steam) once F030 lands. For now it only
+## Owns the transport abstraction (ENet/Steam) once F020 lands. For now it only
 ## answers the authority question used by every state-changing system.
 
 

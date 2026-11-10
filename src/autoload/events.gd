@@ -50,6 +50,8 @@ signal enemy_killed(net_id: int, killer_id: int)
 # --- Economy --------------------------------------------------------------------------------
 
 signal points_changed(peer_id: int, total: int, delta: int)
+## A public purchase (F018): kind is &"weapon" or &"perk". Ammo refills are not announced.
+signal item_purchased(peer_id: int, kind: StringName, item_id: StringName)
 
 # --- World ----------------------------------------------------------------------------------
 

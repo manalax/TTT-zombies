@@ -1,9 +1,11 @@
 class_name TempHud
 extends CanvasLayer
-## Placeholder HUD until F071: crosshair (gap follows the firearm's spread; a dot for melee),
+## Placeholder HUD until F051: crosshair (gap follows the firearm's spread; a dot for melee),
 ## ammo / weapon readout, hit markers (white hit, yellow weak point, red kill), and the points
 ## balance with floating "+N" popups per award (F016), the interact prompt with a "Not enough
-## points" flash, and a public feed of door openings (F017).
+## points" flash, and a public feed of door openings (F017) and weapon / perk purchases (F018),
+## plus the owned perks under the points, and the match: round counter, intermission countdown
+## and centre banners (F019).
 
 const HIT_MARKER_S := 0.15
 const PIXELS_PER_DEGREE := 9.0
@@ -15,6 +17,7 @@ const DENY_COLOR := Color(1.0, 0.35, 0.3)
 const DENY_FLASH_S := 1.0
 const FEED_S := 4.0
 const FEED_MAX := 4
+const BANNER_S := 2.5
 
 var hit_marker_left: float = 0.0
 var hit_marker_color: Color = Color.WHITE
@@ -27,6 +30,9 @@ var _popups: Control
 var _prompt: Label
 var _feed: VBoxContainer
 var _deny_left: float = 0.0
+var _round_label: Label
+var _banner: Label
+var _banner_left: float = 0.0
 
 
 func _ready() -> void:
@@ -72,7 +78,29 @@ func _ready() -> void:
 	_feed.name = "Feed"
 	_feed.position = Vector2(24, 24)
 	add_child(_feed)
+	_round_label = Label.new()
+	_round_label.name = "Round"
+	_round_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_round_label.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_round_label.position.y = 16
+	_round_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_style(_round_label, 22)
+	add_child(_round_label)
+	_banner = Label.new()
+	_banner.name = "Banner"
+	_banner.set_anchors_preset(Control.PRESET_CENTER)
+	_banner.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_banner.grow_vertical = Control.GROW_DIRECTION_BOTH
+	_banner.position.y = -120
+	_banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_style(_banner, 48)
+	_banner.visible = false
+	add_child(_banner)
+	Events.round_started.connect(func(n: int) -> void: show_banner("ROUND %d" % n))
+	Events.round_cleared.connect(func(_n: int) -> void: show_banner("ROUND CLEARED"))
+	Events.match_ended.connect(_on_match_ended)
 	Events.door_opened.connect(_on_door_opened)
+	Events.item_purchased.connect(_on_item_purchased)
 
 
 func _process(delta: float) -> void:
@@ -90,6 +118,9 @@ func _process(delta: float) -> void:
 	_deny_left = maxf(0.0, _deny_left - delta)
 	_update_prompt()
 	_update_feed(delta)
+	_round_label.text = round_text()
+	_banner_left = maxf(0.0, _banner_left - delta)
+	_banner.visible = _banner_left > 0.0
 	_crosshair.queue_redraw()
 
 
@@ -115,7 +146,12 @@ func readout() -> String:
 
 
 func points_text() -> String:
-	return "POINTS  %d" % _player.points.balance if _player != null else ""
+	if _player == null:
+		return ""
+	var text := "POINTS  %d" % _player.points.balance
+	if _player.perks.count() > 0:
+		text += "\n" + " · ".join(_player.perks.names())
+	return text
 
 
 ## Floating "+N" above the crosshair (yellow on a weak point, "RIPOSTE" on a riposte).
@@ -129,6 +165,37 @@ func show_award(award: PointAward) -> void:
 	popup.set_meta(&"age", 0.0)
 	_popups.add_child(popup)
 	popup.position = _popups.size * 0.5 + Vector2(18, -30 - _popups.get_child_count() * 4)
+
+
+## "ROUND 3 / 12", plus "Next round in 0:24" during intermission. "" outside a match.
+func round_text() -> String:
+	var manager := get_tree().get_first_node_in_group(MatchManager.GROUP) as MatchManager
+	if manager == null:
+		return ""
+	match manager.phase():
+		&"Intermission":
+			var left := ceili(maxf(manager.phase_left, 0.0))
+			var text := "Next round in %d:%02d" % [left / 60, left % 60]
+			if manager.round_number > 0:
+				text = "ROUND %d / %d\n%s" % [manager.round_number, manager.final_round, text]
+			return text
+		&"WaveActive", &"Victory", &"Defeat", &"Results":
+			return "ROUND %d / %d" % [manager.round_number, manager.final_round]
+	return ""
+
+
+func show_banner(text: String) -> void:
+	_banner.text = text
+	_banner_left = BANNER_S
+	_banner.visible = true
+
+
+func banner_text() -> String:
+	return _banner.text if _banner.visible else ""
+
+
+func _on_match_ended(side: StringName) -> void:
+	show_banner("VICTORY" if side == &"hunters" else "DEFEAT")
 
 
 ## The interact prompt currently shown ("" if none).
@@ -154,10 +221,10 @@ func _update_prompt() -> void:
 		return
 	_prompt.visible = true
 	if _deny_left > 0.0:
-		_prompt.text = target.get_prompt_text() + "\nNot enough points"
+		_prompt.text = target.get_prompt_text(_player) + "\nNot enough points"
 		_prompt.modulate = DENY_COLOR
 		return
-	_prompt.text = target.get_prompt_text()
+	_prompt.text = target.get_prompt_text(_player)
 	_prompt.modulate = Color.WHITE if target.can_use(_player) else DENY_COLOR
 
 
@@ -169,8 +236,25 @@ func _on_interact_denied(reason: StringName) -> void:
 func _on_door_opened(door_id: StringName, peer_id: int) -> void:
 	var data := ContentDB.get_item(&"DoorData", door_id) as DoorData
 	var title := data.display_name if data != null else String(door_id)
+	add_feed_line("Player %d opened the %s" % [peer_id, title])
+
+
+func _on_item_purchased(peer_id: int, kind: StringName, item_id: StringName) -> void:
+	match kind:
+		&"weapon":
+			var weapon := ContentDB.get_item(&"WeaponData", item_id) as WeaponData
+			var title := weapon.display_name if weapon != null else String(item_id)
+			add_feed_line("Player %d bought the %s" % [peer_id, title])
+		&"perk":
+			var perk := ContentDB.get_item(&"PerkData", item_id) as PerkData
+			var title := perk.display_name if perk != null else String(item_id)
+			add_feed_line("Player %d took the %s sacrament" % [peer_id, title])
+
+
+## Adds a public feed line (top left, fades after FEED_S, at most FEED_MAX lines).
+func add_feed_line(text: String) -> void:
 	var line := Label.new()
-	line.text = "Player %d opened the %s" % [peer_id, title]
+	line.text = text
 	line.set_meta(&"age", 0.0)
 	_style(line, 18)
 	_feed.add_child(line)

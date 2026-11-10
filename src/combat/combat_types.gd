@@ -2,7 +2,7 @@ class_name CombatTypes
 extends RefCounted
 ## Shared combat enums (docs/adr/0004-damage-pipeline.md).
 
-## Public allegiance. Hidden traitors are HUNTER: roles live in the server's RoleService (F040).
+## Public allegiance. Hidden traitors are HUNTER: roles live in the server's RoleService (F030).
 enum Faction { HUNTER, CULT, WORLD }
 
 enum DamageType { MELEE, BULLET, BLAST, FALL, ENVIRONMENT, DEBUG }

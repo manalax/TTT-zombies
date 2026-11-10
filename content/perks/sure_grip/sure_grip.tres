@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PerkData" format=3]
+
+[ext_resource type="Script" path="res://src/data/perks/perk_data.gd" id="1_perk"]
+
+[resource]
+script = ExtResource("1_perk")
+cost = 3000
+stat_modifiers = Dictionary[StringName, float]({
+&"reload_speed_mult": 1.4
+})
+id = &"sure_grip"
+display_name = "Sure Grip"
+description = "A sacrament of steady hands. Reloads 40% faster."

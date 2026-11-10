@@ -2,7 +2,7 @@ class_name DataSerializer
 extends RefCounted
 ## Converts data resources to/from JSON-safe Dictionaries (docs/adr/0002-content-data-model.md).
 ##
-## Used for lobby replication (MatchSettings, F035) and sharing custom wave sets (F081).
+## Used for lobby replication (MatchSettings, F025) and sharing custom wave sets (F061).
 ## Rules:
 ## - Standalone [GameData] (its own .tres) is written as {"ref": "Type:id"} and resolved through
 ##   the content registry. Embedded resources are written inline as {"type": "Class", ...}.

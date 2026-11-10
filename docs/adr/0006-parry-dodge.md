@@ -28,7 +28,7 @@ DESIGN §6.3 asks for three mechanics:
 - **Timing:** `BlockState.since_press` advances only through `tick(delta)`, which the weapon calls once per physics step before its machine.
   - A hit arriving N ticks after the press sees `N × delta`, and parries while that is ≤ `parry_window_s` (+ε).
   - At 60 Hz, 0.2 s gives ticks 0–12 parry and tick 13 doesn't.
-  - Wall-clock time is never used, so the result is deterministic and identical when the host simulates clients (F032).
+  - Wall-clock time is never used, so the result is deterministic and identical when the host simulates clients (F022).
 - **Lockout:** if the window ends without a parry (expiry or release), `parry_lockout_s` (0.5 s) blocks the next window. Mashing RMB only blocks. A successful parry doesn't lock out.
 
 ### Parry effect: negate and stun
@@ -36,7 +36,7 @@ DESIGN §6.3 asks for three mechanics:
 - **Commit:**
   - `source.stun(block.parry_stun_s, parrier)` (the parrier's weapon: sword 1.2 s, greatsword 1.4 s);
   - the parrier's `notify_parried()`;
-  - `damage_applied` still fires (`applied` = 0, `parried` flag) for F016/F042.
+  - `damage_applied` still fires (`applied` = 0, `parried` flag) for F016/F032.
 - **Stun reactions:** players route `HealthComponent.stunned` to the weapon's `Staggered` state for that duration, interrupting any swing. Dummies and AI cancel their attack. The stun is also the riposte window.
 
 ### Riposte: the parrier's next melee hit
@@ -60,9 +60,9 @@ DESIGN §6.3 asks for three mechanics:
 - **Timers:** stun and i-frame timers live in `HealthComponent.tick()`, called by the owner each physics step. They snap float residue below 1e-6 to zero, so 0.2 s is exactly 12 ticks.
 
 ### Unparryable attacks
-`DamageEvent.unparryable` skips **both parry and block**, so the attack must be dodged. The sparring dummy option `spar_unparryable` shows a purple telegraph. F015/F062 will map `EnemyData.parryable = false` to this flag.
+`DamageEvent.unparryable` skips **both parry and block**, so the attack must be dodged. The sparring dummy option `spar_unparryable` shows a purple telegraph. F015/F042 will map `EnemyData.parryable = false` to this flag.
 
 ## Consequences
 - **New pipeline order:** validate → gate → **dodge** → zone → **riposte** → match → relation → **parry** → block → armour → clamp (ADR 0004).
 - **AI melee (F015)** must call `HealthComponent.tick()` and react to `stunned`. Its swings are parryable unless the enemy data says otherwise.
-- **Network (F032):** clients send intents; the host evaluates windows on its own ticks. Latency compensation for parry timing is out of scope for v1.
+- **Network (F022):** clients send intents; the host evaluates windows on its own ticks. Latency compensation for parry timing is out of scope for v1.

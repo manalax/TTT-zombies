@@ -14,7 +14,7 @@ Every attack in the game needs consistent rules:
 - friendly fire (with traitors);
 - host multipliers, blocking, and armour.
 
-Later systems react to who hurt whom: points (F016), exposure (F042), death and conversion (F044). The math has to be auditable and testable without a scene.
+Later systems react to who hurt whom: points (F016), exposure (F032), death and conversion (F034). The math has to be auditable and testable without a scene.
 
 ## Decisions
 
@@ -50,9 +50,9 @@ The F013 stages are specified in [ADR 0006](0006-parry-dodge.md).
 - **Why fixed stages:** a fixed order is easier to reason about than a priority-sorted modifier chain, and each stage is tested on its own (the AC).
 - **Future insertions:**
   - parry (F013) goes immediately **before** block (done: stage 8);
-  - perk and consumable multipliers (F073) go after match multipliers;
+  - perk and consumable multipliers (F053) go after match multipliers;
   - player armour (if a perk adds it) reuses stage 7.
-- **Factions:** hidden traitors are HUNTER. Traitor-specific handling (F041) and exposure (F042) read `damage_applied`; they don't change this math.
+- **Factions:** hidden traitors are HUNTER. Traitor-specific handling (F031) and exposure (F032) read `damage_applied`; they don't change this math.
 
 ### Block
 A block applies only when all of these hold:
@@ -73,5 +73,5 @@ The block absorbs `amount × reduction` and costs `absorbed × stamina_per_damag
 
 ## Consequences
 - New damage sources build a `DamageEvent` (`from_source` or `world`) and call `Combat.apply`.
-- **Clients:** they never resolve damage. F032 sends attack intents to the host and replicates the outcomes.
+- **Clients:** they never resolve damage. F022 sends attack intents to the host and replicates the outcomes.
 - **New MatchSettings rules** reach the pipeline only through `DamageRules.from_settings`.

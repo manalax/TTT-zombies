@@ -12,7 +12,7 @@
   - `tests/player/test_melee_weapon.gd`.
 
 ## Context
-Melee is the core of the game (DESIGN §6.3): light/heavy attacks, blocking with stamina, guard breaks, and F013 parry/dodge/riposte later. It has to be data-driven (`MeleeStats`), run server-side later (F032), and stay readable as more rules arrive.
+Melee is the core of the game (DESIGN §6.3): light/heavy attacks, blocking with stamina, guard breaks, and F013 parry/dodge/riposte later. It has to be data-driven (`MeleeStats`), run server-side later (F022), and stay readable as more rules arrive.
 
 ## Decisions
 
@@ -22,7 +22,7 @@ Melee is the core of the game (DESIGN §6.3): light/heavy attacks, blocking with
   - otherwise → **light** (horizontal, alternating left→right / right→left).
 - Holding past full charge keeps the heavy ready; there's no auto-release.
 - RMB blocks, and block wins over attack.
-- The intent carries only button *state* (`attack_held`, `block_held`). The weapon derives the press/release edges, so network input (F031) stays state-only.
+- The intent carries only button *state* (`attack_held`, `block_held`). The weapon derives the press/release edges, so network input (F021) stays state-only.
 
 ### Weapon state machine (ADR 0001, MANUAL tick)
 The machine is ticked by `Player.step()` after stamina and **before movement**, so this step's speed modifiers apply immediately.
@@ -73,5 +73,5 @@ See [ADR 0006](0006-parry-dodge.md).
 - **F013 parry:** a parry window in `Blocking` (from block press to `parry_window_s`), plus a pipeline stage **before block** that turns an in-window MELEE hit into a parry. Riposte is a `SwingSpec` multiplier.
 - **F013 dodge:** a movement state (the i-frames set `HealthComponent.invulnerable`).
 - **F014:** owns the loadout and weapon swapping, which replaces the F9 debug swap. `MeleeWeapon.equip()` is the swap point.
-- **F032:** the host runs the same weapon machine on network intents, and clients only render.
-- **Performance:** about 6 samples × (1 ray + 1 shape query) per attacking combatant per tick. To be profiled in F075.
+- **F022:** the host runs the same weapon machine on network intents, and clients only render.
+- **Performance:** about 6 samples × (1 ray + 1 shape query) per attacking combatant per tick. To be profiled in F055.

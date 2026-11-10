@@ -3,10 +3,10 @@ extends Node
 ##
 ## All damage goes through apply(): never subtract health directly. On the authority it resolves
 ## the event with DamagePipeline using the active MatchSettings, commits it (stamina, health),
-## then announces it. Clients get no result (F032 sends them the outcome).
+## then announces it. Clients get no result (F022 sends them the outcome).
 
 ## Every committed hit, authority only. Node refs are fine here: this is a server-side service
-## signal, not part of the Events bus. Consumers: points (F016), exposure (F042), death (F044).
+## signal, not part of the Events bus. Consumers: points (F016), exposure (F032), death (F034).
 signal damage_applied(result: DamageResult)
 
 

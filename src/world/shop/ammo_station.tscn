@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://src/world/shop/ammo_station.gd" id="1_station"]
+[ext_resource type="Script" path="res://src/world/interact/interactable.gd" id="2_interact"]
+
+[sub_resource type="BoxShape3D" id="Box_station"]
+size = Vector3(0.9, 2.0, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="Mat_station"]
+albedo_color = Color(0.3, 0.32, 0.22, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Mesh_station"]
+material = SubResource("Mat_station")
+size = Vector3(0.9, 0.8, 0.7)
+
+[node name="AmmoStation" type="StaticBody3D"]
+script = ExtResource("1_station")
+
+; Collider is 2 m tall so the eye-height interact ray hits it without looking down.
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0)
+shape = SubResource("Box_station")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+mesh = SubResource("Mesh_station")
+
+[node name="Label" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+billboard = 1
+pixel_size = 0.004
+font_size = 40
+outline_size = 8
+text = "AmmoStation"
+
+[node name="Interactable" type="Node" parent="."]
+script = ExtResource("2_interact")

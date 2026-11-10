@@ -1,0 +1,161 @@
+[gd_resource type="Resource" script_class="WaveSet" format=3]
+
+[ext_resource type="Script" path="res://src/data/waves/wave_set.gd" id="1_set"]
+[ext_resource type="Script" path="res://src/data/waves/wave_data.gd" id="2_wave"]
+[ext_resource type="Script" path="res://src/data/waves/wave_entry.gd" id="3_entry"]
+[ext_resource type="Resource" path="res://content/enemies/acolyte/acolyte.tres" id="4_acolyte"]
+
+[sub_resource type="Resource" id="Entry_1"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 6
+count_max = 6
+
+[sub_resource type="Resource" id="Wave_1"]
+script = ExtResource("2_wave")
+budget_points = 6
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_1")])
+spawn_rate = 1.0
+
+[sub_resource type="Resource" id="Entry_2"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 8
+count_max = 8
+
+[sub_resource type="Resource" id="Wave_2"]
+script = ExtResource("2_wave")
+budget_points = 6
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_2")])
+spawn_rate = 1.18
+
+[sub_resource type="Resource" id="Entry_3"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 10
+count_max = 10
+
+[sub_resource type="Resource" id="Wave_3"]
+script = ExtResource("2_wave")
+budget_points = 8
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_3")])
+spawn_rate = 1.36
+
+[sub_resource type="Resource" id="Entry_4"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 12
+count_max = 12
+
+[sub_resource type="Resource" id="Wave_4"]
+script = ExtResource("2_wave")
+budget_points = 8
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_4")])
+spawn_rate = 1.55
+
+[sub_resource type="Resource" id="Entry_5"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 15
+count_max = 15
+
+[sub_resource type="Resource" id="Wave_5"]
+script = ExtResource("2_wave")
+budget_points = 10
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_5")])
+spawn_rate = 1.73
+
+[sub_resource type="Resource" id="Entry_6"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 18
+count_max = 18
+
+[sub_resource type="Resource" id="Wave_6"]
+script = ExtResource("2_wave")
+budget_points = 10
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_6")])
+spawn_rate = 1.91
+clear_condition = 1
+kill_quota = 14
+
+[sub_resource type="Resource" id="Entry_7"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 20
+count_max = 20
+
+[sub_resource type="Resource" id="Wave_7"]
+script = ExtResource("2_wave")
+budget_points = 12
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_7")])
+spawn_rate = 2.09
+
+[sub_resource type="Resource" id="Entry_8"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 24
+count_max = 24
+
+[sub_resource type="Resource" id="Wave_8"]
+script = ExtResource("2_wave")
+budget_points = 14
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_8")])
+spawn_rate = 2.27
+
+[sub_resource type="Resource" id="Entry_9"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 26
+count_max = 26
+
+[sub_resource type="Resource" id="Wave_9"]
+script = ExtResource("2_wave")
+budget_points = 16
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_9")])
+spawn_rate = 2.45
+clear_condition = 2
+survive_time_s = 45.0
+
+[sub_resource type="Resource" id="Entry_10"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 30
+count_max = 30
+
+[sub_resource type="Resource" id="Wave_10"]
+script = ExtResource("2_wave")
+budget_points = 18
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_10")])
+spawn_rate = 2.64
+
+[sub_resource type="Resource" id="Entry_11"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 34
+count_max = 34
+
+[sub_resource type="Resource" id="Wave_11"]
+script = ExtResource("2_wave")
+budget_points = 20
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_11")])
+spawn_rate = 2.82
+
+[sub_resource type="Resource" id="Entry_12"]
+script = ExtResource("3_entry")
+enemy = ExtResource("4_acolyte")
+count_min = 40
+count_max = 40
+
+[sub_resource type="Resource" id="Wave_12"]
+script = ExtResource("2_wave")
+budget_points = 24
+entries = Array[ExtResource("3_entry")]([SubResource("Entry_12")])
+spawn_rate = 3.0
+
+[resource]
+script = ExtResource("1_set")
+waves = Array[ExtResource("2_wave")]([SubResource("Wave_1"), SubResource("Wave_2"), SubResource("Wave_3"), SubResource("Wave_4"), SubResource("Wave_5"), SubResource("Wave_6"), SubResource("Wave_7"), SubResource("Wave_8"), SubResource("Wave_9"), SubResource("Wave_10"), SubResource("Wave_11"), SubResource("Wave_12")])
+id = &"dev_twelve"
+display_name = "Dev: Twelve Rounds"
+description = "Placeholder 12-round acolyte set for the round loop (F019). Round 6 is a kill quota, round 9 a survival timer. Replaced by the default set in F045."

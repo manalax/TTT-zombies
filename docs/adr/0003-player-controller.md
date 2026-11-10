@@ -5,14 +5,14 @@
 - **Tests:** `tests/player/`. The integration tests drive the real `player.tscn` with `tests/player/fixtures/scripted_input_source.gd`.
 
 ## Context
-F010 needs a responsive first-person body that every combat feature (F011–F015) builds on. In F031 the same movement must be simulated on the host from client input, so it can't be tied to the keyboard. The owner asked for a grounded, weighty feel and clear per-mode rules: no sprinting in the air or while strafing, crouch behaviour, exhaustion.
+F010 needs a responsive first-person body that every combat feature (F011–F015) builds on. In F021 the same movement must be simulated on the host from client input, so it can't be tied to the keyboard. The owner asked for a grounded, weighty feel and clear per-mode rules: no sprinting in the air or while strafing, crouch behaviour, exhaustion.
 
 ## Decisions
 
 ### Pipeline: input source → intent → movement HSM → motor
 - **`PlayerInputSource`** (a Node) produces a `MoveIntent` once per physics step: move vector, sprint held, jump pressed (edge), and desired crouch.
   - `LocalInputSource` reads devices and local prefs. Hold vs toggle crouch is resolved here, so movement only sees the desired posture.
-  - Tests use a scripted source, and F031 adds a network source. Movement code doesn't change.
+  - Tests use a scripted source, and F021 adds a network source. Movement code doesn't change.
 - **`MovementMachine`** is a `StateMachine` (ADR 0001) in **MANUAL** tick mode, ticked by `Player.step()`:
   - `Grounded{Idle, Walk, Sprint, Crouch}` and `Airborne`.
   - Each state sets the motor parameters (target speed, accel, decel) and the posture, then requests transitions.
@@ -47,6 +47,6 @@ F010 needs a responsive first-person body that every combat feature (F011–F015
 - **Comfort settings** (sensitivity, invert Y, FOV, crouch mode) live in the `Settings` autoload. They are saved to `user://settings.cfg`, never replicated.
 
 ## Consequences
-- **New movement modes** (dodge in F013, special-infected movement in F045) add `MovementState` subclasses and allow-list entries. The motor and input pipeline stay the same.
-- **F031 replication:** add a network input source, run `step()` on the host, and mirror the state path with `StateMachine.apply_remote_state` for animation.
+- **New movement modes** (dodge in F013, special-infected movement in F035) add `MovementState` subclasses and allow-list entries. The motor and input pipeline stay the same.
+- **F021 replication:** add a network input source, run `step()` on the host, and mirror the state path with `StateMachine.apply_remote_state` for animation.
 - **Stairs** need ramp colliders: `CharacterBody3D` has no step-up. Real step-up logic is out of scope until a map needs it.

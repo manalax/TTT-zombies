@@ -44,9 +44,10 @@ func test_hit_marker_colours() -> void:
 	assert_object(_hud.hit_marker_color).is_equal(Color(1.0, 0.2, 0.2))
 
 
-func test_arena_has_rifle_stand() -> void:
-	var stand: WeaponPickupStand = _arena.get_node("RifleStand")
-	assert_str(stand.weapon.id).is_equal("rifle")
+func test_arena_shop_layout() -> void:
+	assert_str((_arena.get_node("Shop/RevolverWallBuy") as WallBuy).weapon.id).is_equal("revolver")
+	assert_str((_arena.get_node("Shop/RifleWallBuy") as WallBuy).weapon.id).is_equal("rifle")
+	assert_int(_arena.get_node("Shop").get_child_count()).is_equal(9)
 
 
 func test_points_balance_and_popups() -> void:
@@ -85,3 +86,24 @@ func test_interact_prompt_and_deny_flash() -> void:
 	_player.points.reset(1000)
 	assert_bool(_player.try_interact()).is_true()
 	assert_array(_hud.feed_lines()).contains(["Player 1 opened the Annex Gate"])
+
+
+func test_purchase_feed_and_perk_line() -> void:
+	Events.item_purchased.emit(1, &"weapon", &"rifle")
+	Events.item_purchased.emit(1, &"perk", &"sure_grip")
+	assert_array(_hud.feed_lines()).contains(
+		["Player 1 bought the Hunting Rifle", "Player 1 took the Sure Grip sacrament"]
+	)
+	_player.perks.add(ContentDB.get_item(&"PerkData", &"sure_grip") as PerkData)
+	assert_str(_hud.points_text()).contains("Sure Grip")
+
+
+func test_round_counter_timer_and_banners() -> void:
+	var manager: MatchManager = _arena.get_node("MatchManager")
+	assert_str(_hud.round_text()).is_equal("")
+	assert_bool(manager.start_match()).is_true()
+	assert_str(_hud.round_text()).is_equal("Next round in 0:30")
+	Events.round_started.emit(1)
+	assert_str(_hud.banner_text()).is_equal("ROUND 1")
+	Events.match_ended.emit(&"cult")
+	assert_str(_hud.banner_text()).is_equal("DEFEAT")

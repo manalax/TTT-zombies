@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PerkData" format=3]
+
+[ext_resource type="Script" path="res://src/data/perks/perk_data.gd" id="1_perk"]
+
+[resource]
+script = ExtResource("1_perk")
+cost = 2500
+stat_modifiers = Dictionary[StringName, float]({
+&"riposte_mult": 1.3
+})
+id = &"riposte"
+display_name = "Riposte"
+description = "A sacrament of answered blows. Ripostes strike 30% harder."

@@ -39,7 +39,7 @@ A hit earns points only if all of these hold:
 - the relation is HOSTILE;
 - the target faction is CULT.
 
-That excludes friendly fire, self-damage, world damage and cult attacks. Traitors earn from cultists exactly like Hunters (§5.2), with no special case needed. Converted players (CULT faction, F045) won't earn, because their targets are Hunters.
+That excludes friendly fire, self-damage, world damage and cult attacks. Traitors earn from cultists exactly like Hunters (§5.2), with no special case needed. Converted players (CULT faction, F035) won't earn, because their targets are Hunters.
 
 ### Split
 - **`PointRules`** (static, pure) holds the formula, eligibility, `round_up`, and the price helpers. It's fully unit-tested, and is where every rule change goes.
@@ -63,7 +63,7 @@ That excludes friendly fire, self-damage, world damage and cult attacks. Traitor
 - F12 grants 1000 points (debug builds).
 
 ## Deferred
-- **Death point loss** (`death_point_loss`) → F044/F048. The bag or pickup needs a pickup system, which is out of F017 and planned for F044.
+- **Death point loss** (`death_point_loss`) → F034/F038. The bag or pickup needs a pickup system, which is out of F017 and planned for F034.
 - **Friendly-fire point penalty** (`friendly_fire_point_penalty`) and **gifting** (`allow_gifting`): the settings exist, but nothing implements them yet.
-- **Exposed-traitor bounty** (`exposed_bounty`) → F042/F047, via `award(bounty, &"bounty")`.
-- **Replication (F031/F040):** the balance goes to its owner only (targeted RPC). Other players never see it, per §10.1 (private).
+- **Exposed-traitor bounty** (`exposed_bounty`) → F032/F037, via `award(bounty, &"bounty")`.
+- **Replication (F021/F030):** the balance goes to its owner only (targeted RPC). Other players never see it, per §10.1 (private).

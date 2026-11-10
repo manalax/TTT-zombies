@@ -24,4 +24,4 @@ func validate_into(report: ValidationReport, source: String) -> void:
 	elif weapon != null:
 		report.warn(source, "weapon", "is ignored for non-WEAPON entries")
 	if kind == Kind.CONSUMABLE:
-		report.warn(source, "kind", "CONSUMABLE is reserved until consumables exist (F073)")
+		report.warn(source, "kind", "CONSUMABLE is reserved until consumables exist (F053)")

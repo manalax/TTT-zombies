@@ -5,7 +5,7 @@
 - **Tests:** `tests/data/`. Fixtures live in `tests/data/fixtures/content/`.
 
 ## Context
-DESIGN rule 2 is "data over code". Weapons, enemies, waves, perks, doors, loot and host settings must be authored as Godot resources, checked for mistakes, and found by id. `MatchSettings` and custom wave sets must also be sent over the network (F035) and shared between hosts (F081).
+DESIGN rule 2 is "data over code". Weapons, enemies, waves, perks, doors, loot and host settings must be authored as Godot resources, checked for mistakes, and found by id. `MatchSettings` and custom wave sets must also be sent over the network (F025) and shared between hosts (F061).
 
 ## Decisions
 

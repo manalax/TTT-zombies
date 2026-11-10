@@ -22,7 +22,8 @@ func _physics_update(delta: float) -> void:
 		if gun.can_fire():
 			gun.fire()
 		return
-	elapsed += delta
+	# Sure Grip and similar perks speed reloads up (reload_speed_mult > 1).
+	elapsed += delta * gun.player.perks.stat(&"reload_speed_mult")
 	if fs.reload_per_round:
 		if elapsed >= fs.reload_round_s:
 			elapsed -= fs.reload_round_s

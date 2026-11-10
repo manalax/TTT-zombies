@@ -3,7 +3,7 @@ extends Node
 ## A player's private point wallet (DESIGN §10, docs/adr/0009-points-economy.md).
 ## Only the authority changes it: damage awards come from the Economy service, purchases from
 ## doors and stations (F017/F018) through try_spend(). Every change is announced on
-## Events.points_changed; F031/F040 replicate the balance to its owner only.
+## Events.points_changed; F021/F030 replicate the balance to its owner only.
 
 signal changed(total: int, delta: int)
 signal awarded(award: PointAward)

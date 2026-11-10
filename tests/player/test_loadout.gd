@@ -1,7 +1,7 @@
 extends "res://tests/player/firearm_test_base.gd"
-## F014: loadout slots, switching, replace_slot, ammo grants and the pickup stand.
+## F014: loadout slots, switching, replace_slot and ammo grants (F018: buying via a wall-buy).
 
-const STAND_SCENE := preload("res://src/world/dev/weapon_pickup_stand.tscn")
+const WALL_BUY_SCENE := preload("res://src/world/shop/wall_buy.tscn")
 
 
 func before_test() -> void:
@@ -108,33 +108,17 @@ func test_without_override_uses_match_settings() -> void:
 	assert_object(player.loadout.slots[Loadout.FIREARM_B]).is_null()
 
 
-func test_pickup_stand_swaps_weapon() -> void:
-	var stand: WeaponPickupStand = STAND_SCENE.instantiate()
-	stand.position = Vector3(0, 0, -1.4)
-	_world.add_child(stand)
+func test_wall_buy_via_interact_key_draws_new_gun() -> void:
+	var station: WallBuy = WALL_BUY_SCENE.instantiate()
+	station.weapon_id = &"rifle"
+	station.position = Vector3(0, 0, -1.4)
+	_world.add_child(station)
 	_player.loadout.set_active_immediate(Loadout.FIREARM_A)
-	_player.pitch = deg_to_rad(-40.0)
+	_player.points.reset(5000)
 	await get_tree().physics_frame
 	await get_tree().physics_frame
 	_input.press_interact()
 	_steps(1)
 	assert_str(_player.loadout.slots[Loadout.FIREARM_A].id).is_equal("rifle")
-	assert_str(stand.weapon.id).is_equal("revolver")
 	_steps(30)
 	assert_str(_player.firearm.weapon.id).is_equal("rifle")
-
-
-func test_pickup_with_melee_out_goes_to_first_firearm_slot() -> void:
-	_player.loadout.setup([&"arming_sword"])
-	var stand: WeaponPickupStand = STAND_SCENE.instantiate()
-	stand.position = Vector3(0, 0, -1.4)
-	_world.add_child(stand)
-	_player.pitch = deg_to_rad(-40.0)
-	await get_tree().physics_frame
-	await get_tree().physics_frame
-	assert_bool(_player.try_interact()).is_true()
-	assert_str(_player.loadout.slots[Loadout.FIREARM_A].id).is_equal("rifle")
-	assert_object(stand.weapon).is_null()
-	assert_bool((stand.get_node("Interactable") as Interactable).enabled).is_false()
-	_steps(40)
-	assert_bool(_player.loadout.is_firearm_active()).is_true()

@@ -51,6 +51,7 @@ var _gravity: float = 9.8
 @onready var stamina: StaminaComponent = $StaminaComponent
 @onready var health: HealthComponent = $HealthComponent
 @onready var points: PointsComponent = $PointsComponent
+@onready var perks: PerkComponent = $PerkComponent
 @onready var melee: MeleeWeapon = $MeleeWeapon
 @onready var firearm: Firearm = $Firearm
 @onready var loadout: Loadout = $Loadout
@@ -181,6 +182,35 @@ func try_interact() -> bool:
 	return true
 
 
+## Brings the player back at [param at] (sandbox match reset; F034/F038 add their own rules):
+## full health (perks kept), stamina, starting points and the starting loadout.
+func respawn(at: Transform3D) -> void:
+	if not Net.is_authority():
+		return
+	global_transform = at
+	yaw = rotation.y
+	pitch = 0.0
+	velocity = Vector3.ZERO
+	health.reset()
+	apply_perks()
+	stamina.refill()
+	points.reset(Settings.match_settings.starting_points if Settings.match_settings != null else 0)
+	loadout.setup(_starting_loadout())
+	if movement.is_in_state(&"Dead"):
+		movement.transition_to(&"Idle")
+	set_crouched(false)
+
+
+## Recomputes stats that perks modify at spawn time: max health (current health moves with it)
+## and stamina regen. Rate-based perks (reload, riposte) are read where they apply.
+func apply_perks() -> void:
+	var mult := Settings.match_settings.player_health_mult if Settings.match_settings else 1.0
+	var target := defaults.max_health * mult + perks.stat(&"max_health_add")
+	if not is_equal_approx(target, health.max_health):
+		health.set_max(target)
+	stamina.regen_per_s = defaults.stamina_regen_per_s * perks.stat(&"stamina_regen_mult")
+
+
 ## Called by weapon states each step.
 func set_combat_modifiers(speed_mult: float, p_sprint_locked: bool) -> void:
 	combat_speed_mult = speed_mult
@@ -282,6 +312,7 @@ func get_debug_info() -> Dictionary:
 			]
 		),
 		"health": "%.0f / %.0f" % [health.current_health, health.max_health],
+		"perks": ", ".join(perks.names()) if perks.count() > 0 else "-",
 		"points":
 		(
 			"%d (last %s)"

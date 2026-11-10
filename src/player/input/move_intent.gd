@@ -1,7 +1,7 @@
 class_name MoveIntent
 extends RefCounted
 ## What the player wants to do this physics step (movement and combat buttons), independent of
-## where it came from (local devices now, network packets in F031). Look is delivered
+## where it came from (local devices now, network packets in F021). Look is delivered
 ## separately, per render frame, via [method PlayerInputSource.consume_look].
 
 ## x = right, y = back (same convention as Input.get_vector). Length <= 1.

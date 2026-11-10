@@ -1,7 +1,7 @@
 extends MovementState
 ## Dead: movement intent is ignored; the body stops, stays down (crouched shape and eye height)
 ## and still falls. Look keeps working for spectating. Leaving it (respawn, conversion) is
-## F044/F048's job.
+## F034/F038's job.
 
 
 func _enter(_data: Dictionary) -> void:

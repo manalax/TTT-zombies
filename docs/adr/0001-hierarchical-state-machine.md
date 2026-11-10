@@ -47,7 +47,7 @@ A **node-based hierarchical state machine**. A `StateMachine` node owns a tree o
 ### Mirroring (networking hooks, no networking code)
 - Each completed transition emits `state_changed(from_path, to_path)`. `from_path` is `""` on start and `to_path` is `""` on stop.
 - `get_active_path()` returns the current path.
-- `apply_remote_state(path)` runs the normal exit/enter sequence but **skips allow-lists**. Clients use it to follow the host. Wiring it to RPCs or synchronizers is F030+ work.
+- `apply_remote_state(path)` runs the normal exit/enter sequence but **skips allow-lists**. Clients use it to follow the host. Wiring it to RPCs or synchronizers is F020+ work.
 
 ### Diagnostics
 `get_history()` is a ring buffer of `history_size` entries in the form `"from -> to"`. `debug_log` prints each transition.

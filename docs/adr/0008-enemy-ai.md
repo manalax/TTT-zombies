@@ -38,7 +38,7 @@ The design reuses earlier systems: `MeleeSweep` (ADR 0005), the parry and stun r
   4. **Repath** every 0.3 s.
   5. `brain.physics_tick`.
   6. Integrate + `move_and_slide`.
-- **Throttling:** the target and repath timers start at offsets derived from `net_id`, so a burst of spawns doesn't replan on the same tick. Movement and attack timing run **every** tick, so parry windows stay exact (ADR 0006). Distance LOD is deferred to F075.
+- **Throttling:** the target and repath timers start at offsets derived from `net_id`, so a burst of spawns doesn't replan on the same tick. Movement and attack timing run **every** tick, so parry windows stay exact (ADR 0006). Distance LOD is deferred to F055.
 - **Movement modes:**
   - `CHASE`: the agent's next path point, through RVO avoidance (`velocity_computed`);
   - `DIRECT`: an exact velocity that ignores avoidance (the lunge);
@@ -63,7 +63,7 @@ Alive{ Idle, Chase, Attack{Windup, Lunge, Recovery}, Staggered, Stunned }   Dead
 - **Hits below `stagger_resist` don't interrupt**, so swarms stay dangerous.
 
 ### Targeting
-- **`AITargeting.is_valid_target(body)`:** alive and in the HUNTER faction. **F041 adds the traitor exclusion here**, and no other code may decide AI targets.
+- **`AITargeting.is_valid_target(body)`:** alive and in the HUNTER faction. **F031 adds the traitor exclusion here**, and no other code may decide AI targets.
 - **`pick()`:** the nearest candidate in the group `ai_targets`. The current target is kept unless another is ≥ 2 m closer (hysteresis).
 - **Aggro:** a player who damages the enemy becomes its target immediately, and is kept for `aggro_memory_s` while valid.
 - With no valid target, the enemy goes to Idle.
@@ -101,14 +101,14 @@ On death:
   - ≥ 90% end within 5 m;
   - avoidance spreads them (mean nearest-neighbour distance > 0.7 m, none stacked);
   - **the mean AI time per tick is < 4 ms** for all 60. That's a deliberately loose bar for CI.
-- **Measured headless:** a mean of about 2.3–2.8 ms per tick, including each enemy's `move_and_slide`. The peak varies between runs, from 6 ms to about 55 ms on a single tick. The spike most likely comes from the first path queries or the async map sync; it hasn't been profiled yet and is for F075 to look at if it shows up as a hitch in play.
+- **Measured headless:** a mean of about 2.3–2.8 ms per tick, including each enemy's `move_and_slide`. The peak varies between runs, from 6 ms to about 55 ms on a single tick. The spike most likely comes from the first path queries or the async map sync; it hasn't been profiled yet and is for F055 to look at if it shows up as a hitch in play.
 - **Rendering FPS** is a manual check (Shift+F10 twice in the sandbox).
 
 ## Consequences
 - **F016:** awards points from `Combat.damage_applied` by `EnemyData.category` (ADR 0009). There is no kill bonus, and `enemy_killed` is left for stats and the director.
 - **F019:** spawns via `EnemySpawnPoint` into the `EnemyRegistry`; wave modifiers scale `EnemyData` copies.
-- **F033:** clients don't run `step()` (the authority guard). They render replicated transforms and brain paths (`StateMachine.apply_remote_state`). `net_id` becomes host-assigned.
-- **F041:** traitor rules go in `AITargeting.is_valid_target`.
-- **F063 and the specials:** extend `EnemyBase` and add states. Multi-attack enemies may later move the attack fields into an `EnemyAttack` sub-resource.
-- **F075:** if profiling needs it, add distance LOD and tick-rate throttling, or a C# steering port (§12.4).
+- **F023:** clients don't run `step()` (the authority guard). They render replicated transforms and brain paths (`StateMachine.apply_remote_state`). `net_id` becomes host-assigned.
+- **F031:** traitor rules go in `AITargeting.is_valid_target`.
+- **F043 and the specials:** extend `EnemyBase` and add states. Multi-attack enemies may later move the attack fields into an `EnemyAttack` sub-resource.
+- **F055:** if profiling needs it, add distance LOD and tick-rate throttling, or a C# steering port (§12.4).
 - **Testing note:** bodies moved by hand (teleports, or a manually stepped `move_and_slide` with no physics frame) aren't visible to physics queries until the next physics frame. Tests await a frame before a query that depends on new positions.

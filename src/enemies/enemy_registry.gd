@@ -5,6 +5,8 @@ extends Node3D
 
 const GROUP := &"enemy_registry"
 
+var _spawn_counts: Dictionary[int, int] = {}
+
 
 func _ready() -> void:
 	add_to_group(GROUP)
@@ -26,6 +28,16 @@ func alive_count() -> int:
 		if not enemy.is_dead():
 			count += 1
 	return count
+
+
+## Spawns one [param data] at [param point], spread on the point's rings so repeated spawns do
+## not stack (the director's spawn path).
+func spawn_one(data: EnemyData, point: EnemySpawnPoint) -> EnemyBase:
+	if point == null:
+		return null
+	var index := _spawn_counts.get(point.get_instance_id(), 0) as int
+	_spawn_counts[point.get_instance_id()] = index + 1
+	return point.spawn(data, self, index % 13)
 
 
 ## Spawns [param count] of [param data] round-robin over the map's active spawn points

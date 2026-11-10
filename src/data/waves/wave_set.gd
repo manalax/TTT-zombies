@@ -1,6 +1,6 @@
 class_name WaveSet
 extends GameData
-## Ordered waves for a match; index 0 is Round 1 (DESIGN §8.1). Host-customisable (F081).
+## Ordered waves for a match; index 0 is Round 1 (DESIGN §8.1). Host-customisable (F061).
 
 @export var waves: Array[WaveData] = []
 

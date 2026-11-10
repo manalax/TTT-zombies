@@ -96,6 +96,7 @@ func start_swing(spec: SwingSpec) -> bool:
 	if player.stamina.current <= 0.0:
 		return false
 	player.stamina.drain(spec.stamina_cost)
+	spec.riposte_mult *= player.perks.stat(&"riposte_mult")  # Riposte perk
 	swing = spec
 	since_release = INF
 	if not spec.is_heavy():

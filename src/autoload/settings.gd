@@ -1,9 +1,9 @@
 extends Node
 ## Local user preferences (look, FOV, crouch mode), saved to user://settings.cfg.
 ##
-## Also holds the active MatchSettings (DESIGN §9). Until the lobby (F035) picks one, it is the
+## Also holds the active MatchSettings (DESIGN §9). Until the lobby (F025) picks one, it is the
 ## Betrayal preset. Local prefs are never replicated: they are per-player comfort settings.
-## There is no options menu yet (F071/F080): edit the cfg file's [controls] section,
+## There is no options menu yet (F051/F060): edit the cfg file's [controls] section,
 ## e.g. `mouse_sensitivity=0.2` or `crouch_mode="TOGGLE"`.
 
 signal prefs_changed

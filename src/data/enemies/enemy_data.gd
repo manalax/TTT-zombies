@@ -1,6 +1,6 @@
 class_name EnemyData
 extends GameData
-## A cultist type (DESIGN §7). Specials share this class; abilities are added in F045+.
+## A cultist type (DESIGN §7). Specials share this class; abilities are added in F035+.
 
 enum Category { COMMON, SPECIAL, BOSS }
 

@@ -5,7 +5,7 @@
   - `src/combat/firearms/`: `Firearm` + `firearm.tscn` + `states/`, `AmmoRules`, `AmmoState`, `TracerDraw`;
   - `src/player/loadout/loadout.gd`;
   - `src/combat/hitscan.gd` (`cast_through`);
-  - `src/world/dev/weapon_pickup_stand.*`;
+  - `src/world/dev/weapon_pickup_stand.*` (removed in F018; replaced by wall-buys, ADR 0011);
   - `src/ui/hud/temp_hud.gd`;
   - `src/player/viewmodel/firearm_viewmodel.gd`.
 - **Tests:**
@@ -65,9 +65,9 @@ DESIGN §6.2 and §6.4 set the shape of firearms:
 ### Feedback (local only)
 - A greybox gun viewmodel with poses (hip, aim, lowered, reload) and a cosmetic kick plus muzzle flash.
 - Tracers (`TracerDraw`).
-- `TempHud`: crosshair gap ∝ spread (a dot for melee), the ammo / weapon / RELOADING readout, and hit markers (white, weak-point yellow, kill red). It's a placeholder until F071.
+- `TempHud`: crosshair gap ∝ spread (a dot for melee), the ammo / weapon / RELOADING readout, and hit markers (white, weak-point yellow, kill red). It's a placeholder until F051.
 
 ## Consequences
 - **Sandbox loadout:** the arena's Player sets `starting_loadout_override` (sword + revolver + blunderbuss). The presets keep `MatchSettings.starting_loadout`.
-- **Network (F031/F032):** the new intent fields (`aim_held`, `slot_pressed`, `cycle`, `reload_pressed`, `interact_pressed`) are part of the input packet. The host runs the same loadout and firearm logic.
+- **Network (F021/F022):** the new intent fields (`aim_held`, `slot_pressed`, `cycle`, `reload_pressed`, `interact_pressed`) are part of the input packet. The host runs the same loadout and firearm logic.
 - **Automatic weapons** (a later repeating carbine) need an `automatic` flag plus a hold-to-fire branch in `Ready`. This is deliberately not added yet.

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="PerkData" format=3]
+
+[ext_resource type="Script" path="res://src/data/perks/perk_data.gd" id="1_perk"]
+
+[resource]
+script = ExtResource("1_perk")
+cost = 2000
+stat_modifiers = Dictionary[StringName, float]({
+&"stamina_regen_mult": 1.5
+})
+id = &"second_wind"
+display_name = "Second Wind"
+description = "A sacrament of breath. Stamina returns 50% faster."

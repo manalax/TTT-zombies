@@ -193,7 +193,7 @@ func _validate_combinations(report: ValidationReport) -> void:
 		)
 
 
-## Serializable form for lobby replication (F035). See DataSerializer.
+## Serializable form for lobby replication (F025). See DataSerializer.
 func to_dict() -> Dictionary:
 	return DataSerializer.to_dict(self)
 

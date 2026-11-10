@@ -1,6 +1,7 @@
 class_name DebugActions
 extends Node
 ## Debug-build hotkeys for exercising systems before their real triggers exist.
+## F4 start a match (waves; F019)
 ## F5 reload scene · F6 hurt self (25, world damage) · F7 test shot (30, hitscan from camera)
 ## F8 toggle melee sweep drawing · F9 cycle the equipped melee weapon.
 ## F10 spawn an acolyte · Shift+F10 spawn 30 · F11 remove all enemies · F12 grant 1000 points.
@@ -45,6 +46,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed(&"debug_clear_enemies"):
 		get_viewport().set_input_as_handled()
 		clear_enemies()
+	elif event.is_action_pressed(&"debug_start_match"):
+		get_viewport().set_input_as_handled()
+		start_match()
 	elif event.is_action_pressed(&"debug_grant_points"):
 		get_viewport().set_input_as_handled()
 		grant_points(GRANT_POINTS)
@@ -145,3 +149,14 @@ func grant_points(amount: int) -> int:
 	player.points.award(amount, &"debug")
 	print("[debug] +%d points (balance %d)" % [amount, player.points.balance])
 	return player.points.balance
+
+
+## Starts a match on the map's MatchManager (from free play). Returns true if it started.
+func start_match() -> bool:
+	var manager := get_tree().get_first_node_in_group(MatchManager.GROUP) as MatchManager
+	if manager == null:
+		print("[debug] no MatchManager in this map")
+		return false
+	var started := manager.start_match()
+	print("[debug] match %s" % ("started" if started else "already running"))
+	return started

@@ -96,6 +96,10 @@ Open/assumed items are in §15.
 - **Intermission** (default 30 s, host-configurable): shop access, door purchases, respawn of dead co-op players, role-reveal hints. Skippable by majority vote (host option).
 - A wave ends when its **kill quota is met** (or timer, whichever the wave resource specifies).
 - Round counter 1..N; N defaults to 12 (host-configurable 3–30).
+- *Implemented in F019* ([ADR 0012](adr/0012-wave-director.md)):
+  - **The loop:** `MatchManager` drives `MatchFlow`. A plain `intermission_s` countdown (no skip vote, no regen yet) leads into each wave.
+  - **Ending:** clearing round `min(final_round, set length)` gives Victory; no living Hunter gives Defeat. Results lasts 5 s.
+  - **Sandbox:** the arena is free play until F4, and returns to free play after Results (players revived, enemies cleared).
 
 ### 4.2 Role assignment (Betrayal)
 - Server assigns at match start. Traitor count = `floor(players / hunters_per_traitor)`, min 1 if `traitors_enabled`; default ratio 1 traitor per 5 players (so 4–5 → 1, 6–9 → 1 up to 8 players; host can set ratio or exact count).
@@ -279,6 +283,13 @@ WaveData
 ```
 
 > Implemented in F003: `src/data/waves/` (`WaveSet`, `WaveData`, `WaveEntry`, `WaveModifier`). The field names in the code are authoritative. See [ADR 0002](adr/0002-content-data-model.md).
+>
+> F019 semantics ([ADR 0012](adr/0012-wave-director.md)):
+> - **Counts:** each entry's count is rolled and scaled by `player_scale[living Hunters]`, and is the wave's **total**.
+> - **`budget_points`** caps the summed `budget_cost` of the wave's **living** enemies, so big waves trickle in at `spawn_rate`.
+> - **Clearing:** a wave clears on its `clear_condition` (or `timeout_s`). Leftovers from quota or time waves keep fighting.
+> - **Modifiers** and enemy multipliers aren't applied yet (F044/F045).
+> - **Placeholder set:** `dev_twelve` is the 12-round placeholder set used by the presets until F045.
 
 A **`WaveSet`** is an ordered `Array[WaveData]` (12 by default). Presets (MVP): *Default*, *Horde* (huge swarm, few specials), *Specials Only*, *Slow Burn*.
 
@@ -299,6 +310,7 @@ Tune numbers in data only (spreadsheet-style `.tres` or `.csv` import is accepta
 - Obeys `special_cap`, per-type cooldowns, "breather" periods (no special spawns for N seconds after a hit).
 - Scales counts by living player count (`player_scale` curve in settings).
 - Unlocked-zone gating: only spawns in/adjacent to opened zones (plus "ambient" spawns in closed zones for door-opening tension — configurable).
+- *F019 implements:* active (unlocked-zone) points only, at least `min_spawn_distance_m` from every living Hunter, picked at random (seeded). If none qualify, it falls back to the farthest active point. Visibility, caps, breathers and ambient spawns are F044.
 
 ### 8.4 Host customisation of waves (Firefight-style)
 - **MVP:** pick preset; adjust a few global sliders (enemy health ×, damage ×, spawn rate ×, special frequency ×).
@@ -357,6 +369,15 @@ Validation: `MatchSettings.validate()` returns warnings (e.g., "Traitor mode wit
 3. **Perk altars** (Victorian-gothic "Sacraments"): e.g., *Iron Constitution* (+HP), *Second Wind* (stamina regen), *Sure Grip* (faster reload), *Riposte* (stronger parry), *Alms of the Dead* (extra loot), *Hallowed Edge* (damage vs specials). Max perks configurable (default 4).
 4. **Mystery chest / Reliquary** — random weapon for a fee (later milestone).
 5. **Consumables** — healing draught, Blessed Silver Vial, throwables.
+
+*Implemented in F018* ([ADR 0011](adr/0011-shops-perks.md)):
+- **Wall-buys** sell a weapon for `shop_price(wall_cost)`. A firearm goes into the active, empty or first firearm slot, and the old one is discarded. If you already own the gun, the wall-buy refills its reserve for `ammo_price(ammo_cost)`. A melee wall-buy replaces the melee slot.
+- **Ammo stations** refill the held gun's reserve (`grant_ammo`, so scarcity and the cap apply).
+- **Perk altars** sell one perk each, once, up to `max_perks`.
+  - Working perks: Iron Constitution (+25 max and current HP), Second Wind (stamina regen ×1.5), Sure Grip (reload ×1.4 faster), Riposte (riposte ×1.3).
+  - `parry_window_add`, `loot_luck_mult` and `special_damage_mult` aren't implemented yet.
+- **Whitelists:** `allowed_weapons` / `allowed_perks` disable stations.
+- **Announcements:** weapon and perk purchases are announced publicly; ammo refills aren't.
 
 ### 10.3 Death/point penalty
 Dying in Co-op: lose a fraction of points (default 25%, configurable) — dropped as a pickup. In Betrayal, dying converts you; your points drop on the body as a lootable bag (an incentive and a suspicion tell).
@@ -450,6 +471,8 @@ Zones have `LootTable` resources; deeper zones carry higher tier weights. Pickup
 
 Each ID is a self-contained work item. Check dependencies first. "AC" = acceptance criteria. Mark items done in `docs/PROGRESS.md` (create when starting M0).
 
+**Numbering:** milestone M*n* owns IDs F0*n*0–F0*n*9 (M0 → F00x, M1 → F01x, M2 → F02x, …). New items take the next free ID in their milestone's band. *(The M2–M6 IDs were renumbered on 2026-11-10 to follow this rule; they had skipped F02x and F05x.)*
+
 ### M0 — Foundations
 - **F001 Project skeleton.** Godot project, folder layout §12.1, autoload stubs, input map, lint/format config, gdUnit4 installed, `README` with run instructions. *AC:* project opens and runs an empty main scene; test runner executes one passing test.
 - **F002 StateMachine & Events bus.** Reusable `StateMachine`, autoload `Events`. *AC:* unit tests for transitions and signals.
@@ -464,46 +487,46 @@ Each ID is a self-contained work item. Check dependencies first. "AC" = acceptan
 - **F015 Basic cultist AI (Acolyte).** Navmesh chase + telegraphed melee. *AC:* 30 acolytes chase a player without frame drops. *(Tested headless at 60, the §12.5 target, against an AI time budget per tick; rendering FPS is a manual check.)*
 - **F016 Points economy.** Damage→points, point sinks API. *AC:* unit tests for point rules. *(Done: see [ADR 0009](adr/0009-points-economy.md); there is no kill bonus.)*
 - **F017 Doors & zones.** `Zone`, `Door` with cost, nav toggling. *AC:* opening a door unlocks a zone and spawn points. *(Done: see [ADR 0010](adr/0010-doors-zones.md). Pickups are not part of F017.)*
-- **F018 Wall-buy & ammo stations, perk altar.** *AC:* purchases deduct points, replace loadout slots correctly.
-- **F019 Wave director v1 + round loop.** Spawn by budget, intermission, round counter to 12. *AC:* a bot-assisted run completes 12 waves headless.
+- **F018 Wall-buy & ammo stations, perk altar.** *AC:* purchases deduct points, replace loadout slots correctly. *(Done: see [ADR 0011](adr/0011-shops-perks.md).)*
+- **F019 Wave director v1 + round loop.** Spawn by budget, intermission, round counter to 12. *AC:* a bot-assisted run completes 12 waves headless. *(Done: see [ADR 0012](adr/0012-wave-director.md).)*
 
 ### M2 — Multiplayer
-- **F030 NetTransport abstraction + ENet lobby.** Host/join by IP, lobby list of peers. *AC:* two instances connect and see each other.
-- **F031 Player replication.** Spawn/despawn players, movement sync with validation. *AC:* 4 clients move smoothly with host.
-- **F032 Server-authoritative combat.** Melee and gun hits resolved on the host; clients predict. *AC:* damage/points identical across peers.
-- **F033 Enemy replication + director on host.** *AC:* 8 players, 60 AI, stable.
-- **F034 Steam transport.** GodotSteam lobbies + relay. *AC:* friends can join without port forwarding. *(Can proceed in parallel after F030.)*
-- **F035 Settings replication & lobby UI v1** (`MatchSettings` editor MVP). *AC:* host changes apply on all clients when the match starts.
+- **F020 NetTransport abstraction + ENet lobby.** Host/join by IP, lobby list of peers. *AC:* two instances connect and see each other.
+- **F021 Player replication.** Spawn/despawn players, movement sync with validation. *AC:* 4 clients move smoothly with host.
+- **F022 Server-authoritative combat.** Melee and gun hits resolved on the host; clients predict. *AC:* damage/points identical across peers.
+- **F023 Enemy replication + director on host.** *AC:* 8 players, 60 AI, stable.
+- **F024 Steam transport.** GodotSteam lobbies + relay. *AC:* friends can join without port forwarding. *(Can proceed in parallel after F020.)*
+- **F025 Settings replication & lobby UI v1** (`MatchSettings` editor MVP). *AC:* host changes apply on all clients when the match starts.
 
 ### M3 — Social layer (Betrayal)
-- **F040 Role assignment & secret info channel.** *AC:* tests prove no role data is exposed to non-owners.
-- **F041 Friendly fire rules + traitor attack handling.** *AC:* FF scale respected; AI ignores hidden traitors.
-- **F042 Exposure: witnessed damage.** Server LOS/FOV witness check. *AC:* tests with mock players; exposure broadcast works.
-- **F043 Blessed Silver test.** Item, channel, results. *AC:* traitor exposed, hunter cleared; stock limits enforced.
-- **F044 Death, loot bag, conversion queue (Betrayal).** *AC:* killed Hunter appears in cult queue after delay.
-- **F045 Player-controlled special framework** (`SpecialBase` with controller abstraction) + **F046 Stalker** as the first playable special. *AC:* a converted player controls a Stalker with leap-pin.
-- **F047 Win/loss resolution, results & role reveal screen.** *AC:* all edge cases in §4.4 covered by tests.
-- **F048 Co-op mode (Vigil) rules** incl. spectate + next-wave respawn (D15). *AC:* preset flips mode without forking code.
+- **F030 Role assignment & secret info channel.** *AC:* tests prove no role data is exposed to non-owners.
+- **F031 Friendly fire rules + traitor attack handling.** *AC:* FF scale respected; AI ignores hidden traitors.
+- **F032 Exposure: witnessed damage.** Server LOS/FOV witness check. *AC:* tests with mock players; exposure broadcast works.
+- **F033 Blessed Silver test.** Item, channel, results. *AC:* traitor exposed, hunter cleared; stock limits enforced.
+- **F034 Death, loot bag, conversion queue (Betrayal).** *AC:* killed Hunter appears in cult queue after delay.
+- **F035 Player-controlled special framework** (`SpecialBase` with controller abstraction) + **F036 Stalker** as the first playable special. *AC:* a converted player controls a Stalker with leap-pin.
+- **F037 Win/loss resolution, results & role reveal screen.** *AC:* all edge cases in §4.4 covered by tests.
+- **F038 Co-op mode (Vigil) rules** incl. spectate + next-wave respawn (D15). *AC:* preset flips mode without forking code.
 
 ### M4 — Enemy variety
-- **F060 Hooked Priest, F061 Plague Bloat, F062 Abomination** (AI + player-controlled). *AC:* each has documented counterplay & tests.
-- **F063 Zealot, Flagellant common types.**
-- **F064 Director constraints** (special caps, breathers, visibility rules, player-scale). *AC:* property-style tests on spawn legality.
-- **F065 Default 12-wave `WaveSet`** and presets. *AC:* balanced playtest checklist in `docs/BALANCE.md`.
+- **F040 Hooked Priest, F041 Plague Bloat, F042 Abomination** (AI + player-controlled). *AC:* each has documented counterplay & tests.
+- **F043 Zealot, Flagellant common types.**
+- **F044 Director constraints** (special caps, breathers, visibility rules, player-scale). *AC:* property-style tests on spawn legality.
+- **F045 Default 12-wave `WaveSet`** and presets. *AC:* balanced playtest checklist in `docs/BALANCE.md`.
 
 ### M5 — Content & polish for a playable
-- **F070 MVP map greybox** (Ashgrave) with 5–6 zones, spawn points, loot tables.
-- **F071 HUD & scoreboard & ping system.**
-- **F072 Text chat (global/team/cult).**
-- **F073 Perks (6–8) & consumables.**
-- **F074 Audio service + placeholder cues; spatial cues for specials.**
-- **F075 Performance pass** and optional C# port of proven hot spots (§12.4).
+- **F050 MVP map greybox** (Ashgrave) with 5–6 zones, spawn points, loot tables.
+- **F051 HUD & scoreboard & ping system.**
+- **F052 Text chat (global/team/cult).**
+- **F053 Perks (6–8) & consumables.**
+- **F054 Audio service + placeholder cues; spatial cues for specials.**
+- **F055 Performance pass** and optional C# port of proven hot spots (§12.4).
 
 ### M6 — Host power tools
-- **F080 Full `MatchSettings` panel** (all §9 fields) with presets & validation warnings.
-- **F081 In-lobby Wave Editor** (Firefight-style), save/load/share `WaveSet`s.
-- **F082 Expansion specials** (Brute, Acid Witch, Gargoyle, Weeping Bride).
-- **F083 Body inspection, sabotage, downed state, proximity voice** (stretch).
+- **F060 Full `MatchSettings` panel** (all §9 fields) with presets & validation warnings.
+- **F061 In-lobby Wave Editor** (Firefight-style), save/load/share `WaveSet`s.
+- **F062 Expansion specials** (Brute, Acid Witch, Gargoyle, Weeping Bride).
+- **F063 Body inspection, sabotage, downed state, proximity voice** (stretch).
 
 ---
 

@@ -19,6 +19,7 @@ const EXPECTED := {
 	&"enemy_spawned": ["net_id", "enemy_id"],
 	&"enemy_killed": ["net_id", "killer_id"],
 	&"points_changed": ["peer_id", "total", "delta"],
+	&"item_purchased": ["peer_id", "kind", "item_id"],
 	&"door_opened": ["door_id", "peer_id"],
 	&"zone_unlocked": ["zone_id"],
 }

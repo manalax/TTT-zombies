@@ -89,3 +89,11 @@ func test_opening_the_annex_adds_its_spawn_point() -> void:
 		if annex.contains(enemy.global_position + Vector3.UP):
 			in_annex += 1
 	assert_int(in_annex).is_equal(1)
+
+
+func test_start_match_key() -> void:
+	var manager: MatchManager = _arena.get_node("MatchManager")
+	assert_bool(_actions.start_match()).is_true()
+	assert_str(String(manager.phase())).is_equal("Intermission")
+	assert_int(manager.final_round).is_equal(12)
+	assert_bool(_actions.start_match()).is_false()

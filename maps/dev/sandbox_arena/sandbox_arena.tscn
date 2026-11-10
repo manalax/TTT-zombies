@@ -2,7 +2,10 @@
 
 [ext_resource type="PackedScene" path="res://src/player/player.tscn" id="1_tw4dc"]
 [ext_resource type="PackedScene" path="res://src/world/dev/training_dummy.tscn" id="2_dummy"]
-[ext_resource type="PackedScene" path="res://src/world/dev/weapon_pickup_stand.tscn" id="3_stand"]
+[ext_resource type="PackedScene" path="res://src/world/shop/wall_buy.tscn" id="3_wallbuy"]
+[ext_resource type="PackedScene" path="res://src/world/shop/ammo_station.tscn" id="9_ammo"]
+[ext_resource type="PackedScene" path="res://src/world/shop/perk_altar.tscn" id="10_altar"]
+[ext_resource type="Script" path="res://src/match/match_manager.gd" id="11_match"]
 [ext_resource type="Script" path="res://src/world/nav/runtime_nav_region.gd" id="4_nav"]
 [ext_resource type="Script" path="res://src/enemies/enemy_registry.gd" id="5_registry"]
 [ext_resource type="Script" path="res://src/world/spawn/enemy_spawn_point.gd" id="6_spawn"]
@@ -639,9 +642,42 @@ title = "Unparryable (dodge it)"
 spar_enabled = true
 spar_unparryable = true
 
-[node name="RifleStand" parent="." instance=ExtResource("3_stand")]
+[node name="Shop" type="Node3D" parent="."]
+
+[node name="RevolverWallBuy" parent="Shop" instance=ExtResource("3_wallbuy")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 6)
+weapon_id = &"revolver"
+
+[node name="AmmoStation" parent="Shop" instance=ExtResource("9_ammo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 6)
+
+[node name="IronConstitutionAltar" parent="Shop" instance=ExtResource("10_altar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 9)
+perk_id = &"iron_constitution"
+
+[node name="RifleWallBuy" parent="Shop" instance=ExtResource("3_wallbuy")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -43.4, 0, -6)
 weapon_id = &"rifle"
+
+[node name="BlunderbussWallBuy" parent="Shop" instance=ExtResource("3_wallbuy")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -43.4, 0, 6)
+weapon_id = &"blunderbuss"
+
+[node name="GreatswordWallBuy" parent="Shop" instance=ExtResource("3_wallbuy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37, 0, -9.4)
+weapon_id = &"greatsword"
+
+[node name="SecondWindAltar" parent="Shop" instance=ExtResource("10_altar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -34, 0, 8)
+perk_id = &"second_wind"
+
+[node name="SureGripAltar" parent="Shop" instance=ExtResource("10_altar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -37, 0, 8)
+perk_id = &"sure_grip"
+
+[node name="RiposteAltar" parent="Shop" instance=ExtResource("10_altar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, 8)
+perk_id = &"riposte"
 
 [node name="NavRegion" type="NavigationRegion3D" parent="."]
 script = ExtResource("4_nav")
@@ -705,3 +741,7 @@ door_id = &"annex_gate"
 [node name="AnnexPostern" parent="Doors" instance=ExtResource("8_door")]
 transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -30, 0, 6)
 door_id = &"annex_postern"
+
+[node name="MatchManager" type="Node" parent="."]
+script = ExtResource("11_match")
+player_spawn = NodePath("../PlayerSpawn")

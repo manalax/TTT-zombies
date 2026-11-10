@@ -46,4 +46,4 @@ script = ExtResource("1_mvjqs")
 waves = Array[ExtResource("2_s6ck6")]([SubResource("Resource_hynl3"), SubResource("Resource_8h1nh"), SubResource("Resource_qjocc")])
 id = &"test_short"
 display_name = "Test: Short (3 waves)"
-description = "Placeholder 3-wave set for development. Replaced by the default set in F065."
+description = "Placeholder 3-wave set for development. Replaced by the default set in F045."
