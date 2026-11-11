@@ -57,3 +57,5 @@ signal item_purchased(peer_id: int, kind: StringName, item_id: StringName)
 
 signal door_opened(door_id: StringName, peer_id: int)
 signal zone_unlocked(zone_id: StringName)
+## A boarded window gained or lost a plank (F046).
+signal barricade_changed(barricade_id: StringName, planks: int)

@@ -5,9 +5,21 @@ extends CanvasLayer
 ## balance with floating "+N" popups per award (F016), the interact prompt with a "Not enough
 ## points" flash, and a public feed of door openings (F017) and weapon / perk purchases (F018),
 ## plus the owned perks under the points, and the match: round counter, intermission countdown
-## and centre banners (F019).
+## and centre banners (F019). Bottom left: points (and perks) above a health bar with
+## "HP current / max", red at or below a quarter. While a melee attack charges, a ring around
+## the crosshair fills clockwise; it turns thick amber once the heavy is ready (red: no stamina).
 
 const HIT_MARKER_S := 0.15
+const LOW_HEALTH_RATIO := 0.25
+const HEALTH_BAR_SIZE := Vector2(220, 18)
+const HEALTH_COLOR := Color(0.9, 0.9, 0.88)
+const CHARGE_RING_RADIUS := 14.0
+## Taps shorter than this draw no ring, so quick light attacks don't flicker it.
+const CHARGE_RING_DELAY_S := 0.08
+const CHARGE_TRACK_COLOR := Color(1, 1, 1, 0.25)
+const CHARGE_WIDTH := 2.0
+const CHARGE_READY_WIDTH := 3.5
+const HOLD_BAR_STEPS := 5
 const PIXELS_PER_DEGREE := 9.0
 const MIN_GAP := 4.0
 const POPUP_S := 0.8
@@ -26,6 +38,9 @@ var _player: Player
 var _crosshair: Control
 var _label: Label
 var _points_label: Label
+var _health_bar: ProgressBar
+var _health_fill: StyleBoxFlat
+var _health_label: Label
 var _popups: Control
 var _prompt: Label
 var _feed: VBoxContainer
@@ -53,13 +68,7 @@ func _ready() -> void:
 	_label.add_theme_constant_override(&"outline_size", 6)
 	_label.add_theme_color_override(&"font_outline_color", Color.BLACK)
 	add_child(_label)
-	_points_label = Label.new()
-	_points_label.name = "Points"
-	_points_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	_points_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	_points_label.position = Vector2(24, -24)
-	_style(_points_label, 22)
-	add_child(_points_label)
+	_build_bottom_left()
 	_popups = Control.new()
 	_popups.name = "PointPopups"
 	_popups.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -114,6 +123,7 @@ func _process(delta: float) -> void:
 	hit_marker_left = maxf(0.0, hit_marker_left - delta)
 	_label.text = readout()
 	_points_label.text = points_text()
+	_update_health()
 	_update_popups(delta)
 	_deny_left = maxf(0.0, _deny_left - delta)
 	_update_prompt()
@@ -152,6 +162,67 @@ func points_text() -> String:
 	if _player.perks.count() > 0:
 		text += "\n" + " · ".join(_player.perks.names())
 	return text
+
+
+## "HP  75 / 125", rounded up so only a dead player reads 0.
+func health_text() -> String:
+	if _player == null:
+		return ""
+	var health := _player.health
+	return "HP  %d / %d" % [ceili(health.current_health), ceili(health.max_health)]
+
+
+func health_low() -> bool:
+	return _player != null and _player.health.get_ratio() <= LOW_HEALTH_RATIO
+
+
+func _update_health() -> void:
+	var shown := _player != null
+	_health_bar.visible = shown
+	_health_label.visible = shown
+	if not shown:
+		return
+	_health_bar.max_value = _player.health.max_health
+	_health_bar.value = _player.health.current_health
+	var color := DENY_COLOR if health_low() else HEALTH_COLOR
+	_health_fill.bg_color = color
+	_health_label.text = health_text()
+	_health_label.add_theme_color_override(&"font_color", color)
+
+
+## Points (growing upward with perk lines) stacked above the health bar and its numbers.
+func _build_bottom_left() -> void:
+	var box := VBoxContainer.new()
+	box.name = "BottomLeft"
+	box.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	box.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	box.position = Vector2(24, -24)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(box)
+	_points_label = Label.new()
+	_points_label.name = "Points"
+	_style(_points_label, 22)
+	box.add_child(_points_label)
+	var row := HBoxContainer.new()
+	row.name = "Health"
+	row.add_theme_constant_override(&"separation", 12)
+	box.add_child(row)
+	_health_bar = ProgressBar.new()
+	_health_bar.name = "Bar"
+	_health_bar.custom_minimum_size = HEALTH_BAR_SIZE
+	_health_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_health_bar.show_percentage = false
+	var back := StyleBoxFlat.new()
+	back.bg_color = Color(0, 0, 0, 0.55)
+	_health_fill = StyleBoxFlat.new()
+	_health_fill.bg_color = HEALTH_COLOR
+	_health_bar.add_theme_stylebox_override(&"background", back)
+	_health_bar.add_theme_stylebox_override(&"fill", _health_fill)
+	row.add_child(_health_bar)
+	_health_label = Label.new()
+	_health_label.name = "Text"
+	_style(_health_label, 22)
+	row.add_child(_health_label)
 
 
 ## Floating "+N" above the crosshair (yellow on a weak point, "RIPOSTE" on a riposte).
@@ -224,8 +295,16 @@ func _update_prompt() -> void:
 		_prompt.text = target.get_prompt_text(_player) + "\nNot enough points"
 		_prompt.modulate = DENY_COLOR
 		return
-	_prompt.text = target.get_prompt_text(_player)
+	_prompt.text = target.get_prompt_text(_player) + hold_bar(_player.get_interact_hold_ratio())
 	_prompt.modulate = Color.WHITE if target.can_use(_player) else DENY_COLOR
+
+
+## "  ▮▮▮▯▯" progress toward the next use of a held interactable ("" when not holding).
+static func hold_bar(ratio: float) -> String:
+	if ratio <= 0.0:
+		return ""
+	var filled := clampi(int(ratio * HOLD_BAR_STEPS), 0, HOLD_BAR_STEPS)
+	return "  " + "▮".repeat(filled) + "▯".repeat(HOLD_BAR_STEPS - filled)
 
 
 func _on_interact_denied(reason: StringName) -> void:
@@ -316,6 +395,44 @@ func _on_hits(results: Array[DamageResult]) -> void:
 	hit_marker_color = [Color.WHITE, Color(1.0, 0.85, 0.2), Color(1.0, 0.2, 0.2)][best]
 
 
+## Heavy-attack charge 0..1 for the crosshair ring, or -1 when the ring is hidden
+## (not charging a melee attack, or held for less than [constant CHARGE_RING_DELAY_S]).
+func charge_ring_ratio() -> float:
+	if _player == null or Loadout.is_firearm_slot(_player.loadout.active_slot):
+		return -1.0
+	var melee := _player.melee
+	if not melee.machine.is_in_state(&"Charging") or melee.charge_s < CHARGE_RING_DELAY_S:
+		return -1.0
+	return melee.get_charge_ratio()
+
+
+## Red with no stamina (the release would fail), amber once the heavy is ready, else white.
+func charge_ring_color() -> Color:
+	if _player != null and _player.stamina.current <= 0.0:
+		return DENY_COLOR
+	return WEAKPOINT_COLOR if charge_ring_ratio() >= 1.0 else Color.WHITE
+
+
+func _draw_charge_ring(center: Vector2) -> void:
+	var ratio := charge_ring_ratio()
+	if ratio < 0.0:
+		return
+	var color := charge_ring_color()
+	if ratio >= 1.0:
+		_crosshair.draw_arc(
+			center, CHARGE_RING_RADIUS, 0.0, TAU, 48, color, CHARGE_READY_WIDTH, true
+		)
+		return
+	_crosshair.draw_arc(
+		center, CHARGE_RING_RADIUS, 0.0, TAU, 48, CHARGE_TRACK_COLOR, CHARGE_WIDTH, true
+	)
+	if ratio > 0.0:
+		var start := -PI * 0.5
+		_crosshair.draw_arc(
+			center, CHARGE_RING_RADIUS, start, start + TAU * ratio, 48, color, CHARGE_WIDTH, true
+		)
+
+
 func _draw_crosshair() -> void:
 	if _player == null:
 		return
@@ -327,6 +444,7 @@ func _draw_crosshair() -> void:
 			_crosshair.draw_line(center + dir * gap, center + dir * (gap + 8.0), color, 2.0)
 	else:
 		_crosshair.draw_circle(center, 2.0, color)
+		_draw_charge_ring(center)
 	if hit_marker_left > 0.0:
 		for dir: Vector2 in [Vector2(1, 1), Vector2(1, -1), Vector2(-1, 1), Vector2(-1, -1)]:
 			var d := dir.normalized()

@@ -42,7 +42,7 @@ func bake_now() -> void:
 		return
 	var mesh := NavigationMesh.new()
 	mesh.geometry_parsed_geometry_type = NavigationMesh.PARSED_GEOMETRY_STATIC_COLLIDERS
-	mesh.geometry_collision_mask = PhysicsLayers.WORLD
+	mesh.geometry_collision_mask = PhysicsLayers.WORLD | PhysicsLayers.BARRIER
 	mesh.cell_size = CELL_SIZE
 	mesh.cell_height = CELL_HEIGHT
 	mesh.agent_radius = agent_radius

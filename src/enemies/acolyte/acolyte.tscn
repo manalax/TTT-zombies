@@ -14,6 +14,8 @@
 [ext_resource type="Script" path="res://src/enemies/brain/recovery.gd" id="s6_recovery"]
 [ext_resource type="Script" path="res://src/enemies/brain/interrupted.gd" id="s7_interrupted"]
 [ext_resource type="Script" path="res://src/enemies/brain/dead.gd" id="s8_dead"]
+[ext_resource type="Script" path="res://src/enemies/brain/breach.gd" id="s9_breach"]
+[ext_resource type="Script" path="res://src/enemies/brain/climb.gd" id="s10_climb"]
 
 [sub_resource type="CapsuleShape3D" id="Capsule_body"]
 radius = 0.35
@@ -127,11 +129,19 @@ allowed_transitions = Array[StringName]([&"Dead", &"Staggered", &"Stunned"])
 
 [node name="Idle" type="Node" parent="Brain/Alive"]
 script = ExtResource("s1_idle")
-allowed_transitions = Array[StringName]([&"Chase"])
+allowed_transitions = Array[StringName]([&"Chase", &"Breach"])
 
 [node name="Chase" type="Node" parent="Brain/Alive"]
 script = ExtResource("s2_chase")
-allowed_transitions = Array[StringName]([&"Idle", &"Windup"])
+allowed_transitions = Array[StringName]([&"Idle", &"Windup", &"Breach"])
+
+[node name="Breach" type="Node" parent="Brain/Alive"]
+script = ExtResource("s9_breach")
+allowed_transitions = Array[StringName]([&"Chase", &"Windup", &"Climb"])
+
+[node name="Climb" type="Node" parent="Brain/Alive"]
+script = ExtResource("s10_climb")
+allowed_transitions = Array[StringName]([&"Chase", &"Breach"])
 
 [node name="Attack" type="Node" parent="Brain/Alive"]
 script = ExtResource("s3_attack")

@@ -15,6 +15,9 @@ signal used(player: Player)
 @export var cost: int = -1
 ## Shown instead of the price while disabled, e.g. "Owned". Empty = just the prompt.
 @export var disabled_text: String = ""
+## > 0: a hold-to-use interactable. Holding interact uses it once per interval (F046 repair);
+## a press alone does nothing. 0 = used on press.
+@export_range(0.0, 10.0, 0.05, "suffix:s") var hold_interval_s: float = 0.0
 
 ## Optional func(player: Player) -> void that sets prompt / cost / enabled / disabled_text for
 ## that viewer. Called before every prompt, check and use.
@@ -36,9 +39,14 @@ func get_prompt_text(player: Player = null) -> String:
 	_update(player)
 	if not enabled and disabled_text != "":
 		return "%s — %s" % [prompt, disabled_text]
+	var key := "Hold E" if is_hold() else "E"
 	if cost >= 0:
-		return "E: %s [%d]" % [prompt, cost]
-	return "E: %s" % prompt
+		return "%s: %s [%d]" % [key, prompt, cost]
+	return "%s: %s" % [key, prompt]
+
+
+func is_hold() -> bool:
+	return hold_interval_s > 0.0
 
 
 ## Why [param player] cannot use this now: &"" if they can, else &"disabled" / &"points".

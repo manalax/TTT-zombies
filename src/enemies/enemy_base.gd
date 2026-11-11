@@ -1,3 +1,4 @@
+# gdlint:disable=max-public-methods
 class_name EnemyBase
 extends CharacterBody3D
 ## AI-controlled cultist body (DESIGN §7.1, docs/adr/0008-enemy-ai.md). Common types are an
@@ -11,7 +12,7 @@ extends CharacterBody3D
 signal attack_hit(results: Array[DamageResult])
 signal telegraph_changed(on: bool)
 
-enum MoveMode { STOP, CHASE, DIRECT }
+enum MoveMode { STOP, CHASE, WALK, DIRECT }
 
 ## Group of all live enemies (debug tools, director).
 const GROUP := &"enemies"
@@ -26,6 +27,12 @@ const EYE_HEIGHT_M := 1.4
 ## Where the swing aims on the target, above its feet.
 const TARGET_AIM_HEIGHT_M := 0.9
 const MAX_SWING_PITCH_DEG := 40.0
+## Widest swing arc while swiping through a boarded window (F046).
+const WINDOW_ARC_DEG := 40.0
+## Swipes through a window start this far past the blade reach (the target's body radius).
+const WINDOW_REACH_SLACK_M := 0.3
+## walk_to covers the last metres straight, past the end of the eroded navmesh.
+const WALK_DIRECT_M := 1.5
 const TELEGRAPH_COLOR := Color(1.0, 0.1, 0.05)
 const UNPARRYABLE_COLOR := Color(0.6, 0.1, 1.0)
 
@@ -37,6 +44,9 @@ static var _next_net_id: int = 1
 var data: EnemyData
 var net_id: int = 0
 var target: Node3D
+## The boarded window this enemy must get through first (spawned in its closet, F046);
+## null once inside (or for enemies spawned inside).
+var breach: Barricade
 ## Seconds until a new swing may start.
 var cooldown_left: float = 0.0
 ## Basis of the current swing, locked at windup end.
@@ -74,7 +84,7 @@ func _ready() -> void:
 	net_id = _next_net_id
 	_next_net_id += 1
 	collision_layer = PhysicsLayers.ENEMIES
-	collision_mask = PhysicsLayers.WORLD | PhysicsLayers.PLAYERS
+	collision_mask = PhysicsLayers.WORLD | PhysicsLayers.PLAYERS | PhysicsLayers.BARRIER
 	_gravity = float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
 	health.faction = CombatTypes.Faction.CULT
 	health.armor = data.armor
@@ -178,6 +188,35 @@ func chase(delta: float) -> void:
 		_safe_velocity = desired
 
 
+## Walk the navigation path to a fixed [param point] (with avoidance), e.g. a window's outer
+## point. The last stretch (where the eroded navmesh ends) is walked straight, without
+## avoidance. Returns true once within [param arrive_m] of it (horizontally); then it stops.
+func walk_to(point: Vector3, delta: float, arrive_m: float = 0.3) -> bool:
+	var offset := point - global_position
+	offset.y = 0.0
+	if offset.length() <= arrive_m:
+		stop()
+		return true
+	if agent.target_position.distance_squared_to(point) > 0.01:
+		agent.target_position = point
+	if offset.length() <= WALK_DIRECT_M or agent.is_navigation_finished():
+		face(offset, CHASE_TURN_DEG_S, delta)
+		move_direct(offset.normalized() * minf(data.move_speed, offset.length() / delta))
+		return false
+	_move_mode = MoveMode.WALK
+	var dir := agent.get_next_path_position() - global_position
+	dir.y = 0.0
+	if dir.length_squared() < 0.0001:
+		dir = offset
+	var desired := dir.normalized() * data.move_speed
+	face(dir, CHASE_TURN_DEG_S, delta)
+	if agent.avoidance_enabled:
+		agent.velocity = desired
+	else:
+		_safe_velocity = desired
+	return false
+
+
 func stop() -> void:
 	_move_mode = MoveMode.STOP
 	_direct_velocity = Vector3.ZERO
@@ -213,11 +252,25 @@ func horizontal_distance_to(point: Vector3) -> float:
 # --- Attack -----------------------------------------------------------------------------
 
 
+## True while this enemy still has to get through its boarded window.
+func is_breaching() -> bool:
+	return breach != null and is_instance_valid(breach)
+
+
+## Lunges are cancelled while swiping through a window (the dash would hit the boards).
+func lunge_scale() -> float:
+	return 0.0 if is_breaching() else 1.0
+
+
 ## True if a new swing may start now: target valid and in range, in sight, cooldown over.
+## Through a window there is no lunge: the range is the blade's reach plus a body's width.
 func can_start_attack() -> bool:
 	if not has_target() or cooldown_left > 0.0 or not is_on_floor():
 		return false
-	if horizontal_distance_to(target.global_position) > data.attack_range_m:
+	var attack_range := data.attack_range_m
+	if is_breaching():
+		attack_range = data.attack_reach_m + WINDOW_REACH_SLACK_M
+	if horizontal_distance_to(target.global_position) > attack_range:
 		return false
 	return _has_line_of_sight(target)
 
@@ -251,7 +304,10 @@ func build_swing() -> SwingSpec:
 	spec.sweep = SwingSpec.Sweep.RIGHT_TO_LEFT
 	spec.damage = data.attack_damage
 	spec.stagger = data.attack_stagger
-	spec.arc_deg = data.attack_arc_deg
+	# Through a window frame the arc narrows so the swing doesn't clang off the jambs.
+	spec.arc_deg = (
+		minf(data.attack_arc_deg, WINDOW_ARC_DEG) if is_breaching() else data.attack_arc_deg
+	)
 	spec.reach_m = data.attack_reach_m
 	spec.windup_s = data.attack_windup_s
 	spec.active_s = data.attack_active_s
@@ -315,11 +371,11 @@ func is_dead() -> bool:
 func _integrate(delta: float) -> void:
 	var horizontal := Vector3.ZERO
 	match _move_mode:
-		MoveMode.CHASE:
+		MoveMode.CHASE, MoveMode.WALK:
 			horizontal = _safe_velocity
 		MoveMode.DIRECT:
 			horizontal = _direct_velocity
-	if _move_mode != MoveMode.CHASE and agent.avoidance_enabled:
+	if _move_mode != MoveMode.CHASE and _move_mode != MoveMode.WALK and agent.avoidance_enabled:
 		# Report the real velocity so neighbours do not predict a stopped agent still walking.
 		agent.velocity = horizontal
 	velocity.x = horizontal.x
@@ -360,6 +416,8 @@ func _on_stunned(duration: float) -> void:
 
 func _on_died(result: DamageResult) -> void:
 	_corpse_left = data.corpse_s
+	if is_breaching():
+		breach.release(self)
 	stop()
 	velocity = Vector3.ZERO
 	agent.avoidance_enabled = false

@@ -33,6 +33,8 @@ enum Category { COMMON, SPECIAL, BOSS }
 @export_range(0.0, 10.0, 0.05, "suffix:m") var lunge_distance_m: float = 1.2
 
 @export_group("Behaviour")
+## Seconds to tear one plank off a boarded window (F046).
+@export_range(0.05, 30.0, 0.05, "suffix:s") var barricade_tear_s: float = 1.2
 ## How long a poise stagger interrupts this enemy.
 @export_range(0.05, 5.0, 0.05, "suffix:s") var stagger_duration_s: float = 0.6
 ## After being damaged by a player, it targets that player for this long.
@@ -67,6 +69,7 @@ func _validate(report: ValidationReport) -> void:
 	report.check_min(source, "attack_recovery_s", attack_recovery_s, 0.0)
 	report.check_min(source, "attack_stagger", attack_stagger, 0.0)
 	report.check_min(source, "lunge_distance_m", lunge_distance_m, 0.0)
+	report.check_positive(source, "barricade_tear_s", barricade_tear_s)
 	report.check_positive(source, "stagger_duration_s", stagger_duration_s)
 	report.check_min(source, "aggro_memory_s", aggro_memory_s, 0.0)
 	report.check_min(source, "corpse_s", corpse_s, 0.0)

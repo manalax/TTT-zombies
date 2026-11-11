@@ -64,9 +64,11 @@ func test_spawn_and_clear_enemies() -> void:
 func test_arena_navmesh_baked_and_overlay_info() -> void:
 	var nav: RuntimeNavRegion = _arena.get_node("NavRegion")
 	assert_bool(nav.is_baked()).is_true()
-	assert_int(get_tree().get_nodes_in_group(EnemySpawnPoint.GROUP).size()).is_equal(5)
+	assert_int(get_tree().get_nodes_in_group(EnemySpawnPoint.GROUP).size()).is_equal(4)
 	var registry: EnemyRegistry = _arena.get_node("Enemies")
-	assert_int(registry.active_spawn_points().size()).is_equal(4)  # annex locked
+	assert_int(registry.active_spawn_points().size()).is_equal(3)  # annex locked
+	for point in registry.active_spawn_points():
+		assert_object(point.get_barricade()).is_not_null()  # every enemy enters by a window
 	var info: Dictionary = (_arena.get_node("Enemies") as EnemyRegistry).get_debug_info()
 	assert_bool(info.has("ai ms/tick")).is_true()
 
@@ -82,13 +84,14 @@ func test_opening_the_annex_adds_its_spawn_point() -> void:
 	var annex: Zone = _arena.get_node("ZoneAnnex")
 	assert_bool((_arena.get_node("Doors/AnnexPostern") as Door).open(1)).is_true()
 	assert_bool(annex.unlocked).is_true()
-	assert_int(registry.active_spawn_points().size()).is_equal(5)
-	_actions.spawn_enemies(5)
-	var in_annex := 0
+	assert_int(registry.active_spawn_points().size()).is_equal(4)
+	_actions.spawn_enemies(4)
+	var annex_window: Barricade = _arena.get_node("Barricades/WindowAnnex")
+	var at_annex := 0
 	for enemy in registry.get_enemies():
-		if annex.contains(enemy.global_position + Vector3.UP):
-			in_annex += 1
-	assert_int(in_annex).is_equal(1)
+		if enemy.breach == annex_window:
+			at_annex += 1
+	assert_int(at_annex).is_equal(1)  # one spawned in the annex window's closet
 
 
 func test_start_match_key() -> void:

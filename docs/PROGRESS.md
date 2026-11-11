@@ -44,9 +44,10 @@ Status: `todo` · `in progress` · `done`. Update this file in the same change a
 | F043 | Zealot, Flagellant | todo | |
 | F044 | Director constraints | todo | |
 | F045 | Default 12-wave WaveSet + presets | todo | |
+| F046 | Boarded windows (barricades) | done | Built ahead of M2. ADR 0013. `Barricade` on the new BARRIER layer (blocks bodies, not attacks or sight); closet spawn points (`EnemySpawnPoint.barricade`); acolyte `Breach` (walk, swipe through, one tearer at a time) and `Climb` (0.8 s, uninterruptible) states; hold-E repair (`Interactable.hold_interval_s`), +10 per plank, uncapped; sandbox: 3 arena windows + 1 annex window, interior spawns removed |
 | **M5** | **Content & polish** | | |
 | F050 | MVP map greybox (Ashgrave) | todo | |
-| F051 | HUD, scoreboard, ping | todo | |
+| F051 | HUD, scoreboard, ping | todo | Pre-work: the temp HUD has a bottom-left health bar + "HP current / max" (red ≤ 25 %) and a melee charge ring around the crosshair (amber = heavy ready), added 2026-11-11 |
 | F052 | Text chat | todo | |
 | F053 | Perks & consumables | todo | |
 | F054 | Audio service | todo | |

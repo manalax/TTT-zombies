@@ -65,7 +65,7 @@ It builds on F016 (`try_spend`, `PointRules.door_price`) and F015 (the runtime n
 `Events.door_opened` → a public `TempHud` feed line, "Player N opened the X". It lasts 4 s, at most 4 lines are shown, and the cost isn't shown. It's a Betrayal trust signal (who spends where). Real player names arrive with the lobby (F020/F025).
 
 ### Sandbox
-- The arena is zone `arena` (start). The four existing spawn points live under it.
+- The arena is zone `arena` (start). Its spawn points live under it. *(Since F046 they sit in closets behind boarded windows, and so does the annex spawn; see ADR 0013.)*
 - The **annex** (x −44…−30, z −10…10) is zone `annex`, with one spawn point.
 - It's reached through two doorways in the split west wall: **Annex Postern** (250, z +6) and **Annex Gate** (750, z −6).
 - The walkability test checks that the annex is unreachable until a door opens.

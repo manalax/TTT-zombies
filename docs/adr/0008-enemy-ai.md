@@ -107,6 +107,7 @@ On death:
 ## Consequences
 - **F016:** awards points from `Combat.damage_applied` by `EnemyData.category` (ADR 0009). There is no kill bonus, and `enemy_killed` is left for stats and the director.
 - **F019:** spawns via `EnemySpawnPoint` into the `EnemyRegistry`; wave modifiers scale `EnemyData` copies.
+- **F046:** enemies spawned behind a boarded window run `Breach` → `Climb` before `Chase` ([ADR 0013](0013-barricades.md)). `EnemyBase` gained `breach`, `walk_to`, `lunge_scale` and a narrower window swing, and now carries `# gdlint:disable=max-public-methods`.
 - **F023:** clients don't run `step()` (the authority guard). They render replicated transforms and brain paths (`StateMachine.apply_remote_state`). `net_id` becomes host-assigned.
 - **F031:** traitor rules go in `AITargeting.is_valid_target`.
 - **F043 and the specials:** extend `EnemyBase` and add states. Multi-attack enemies may later move the attack fields into an `EnemyAttack` sub-resource.

@@ -8,7 +8,9 @@ func _enter(_data: Dictionary) -> void:
 
 
 func _physics_update(_delta: float) -> void:
-	if enemy.has_target():
+	if enemy.is_breaching():
+		transition_to(&"Breach")
+	elif enemy.has_target():
 		transition_to(&"Chase")
 	else:
 		enemy.stop()

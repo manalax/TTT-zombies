@@ -24,6 +24,8 @@ var slot_pressed: int = -1
 var cycle: int = 0
 var reload_pressed: bool = false
 var interact_pressed: bool = false
+## Interact button state, for hold-to-use interactables (barricade repair, F046).
+var interact_held: bool = false
 
 
 static func make(

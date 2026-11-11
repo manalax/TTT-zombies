@@ -47,6 +47,8 @@ var _decel: float = 0.0
 var _crouched: bool = false
 var _last_fall_speed: float = 0.0
 var _gravity: float = 9.8
+var _hold_target: Interactable
+var _hold_s: float = 0.0
 
 @onready var stamina: StaminaComponent = $StaminaComponent
 @onready var health: HealthComponent = $HealthComponent
@@ -128,8 +130,7 @@ func step(delta: float) -> void:
 		firearm.physics_tick(delta)
 	else:
 		set_combat_modifiers(1.0, false)
-	if intent.interact_pressed and not is_dead():
-		try_interact()
+	_update_interact(delta)
 	movement.physics_tick(delta)
 
 	var wish := PlayerMotor.wish_direction(intent.move, global_basis)
@@ -161,12 +162,62 @@ func get_interact_target() -> Interactable:
 	var eye := get_eye_transform()
 	var to := eye.origin - eye.basis.z * defaults.interact_range_m
 	var query := PhysicsRayQueryParameters3D.create(
-		eye.origin, to, PhysicsLayers.WORLD, Hitscan.collect_rids(self)
+		eye.origin, to, PhysicsLayers.INTERACT_MASK, Hitscan.collect_rids(self)
 	)
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
 	if hit.is_empty():
 		return null
 	return Interactable.find_on(hit["collider"])
+
+
+## Progress (0..1) toward the next use of the hold-to-use Interactable being held, else 0.
+func get_interact_hold_ratio() -> float:
+	if _hold_target == null or not is_instance_valid(_hold_target):
+		return 0.0
+	return clampf(_hold_s / _hold_target.hold_interval_s, 0.0, 1.0)
+
+
+## Press-type interactables are used on the press; hold-type ones once per hold_interval_s
+## while interact stays held on the same target (a press on an unusable one is still denied).
+func _update_interact(delta: float) -> void:
+	if is_dead() or not (intent.interact_pressed or intent.interact_held):
+		_reset_hold()
+		return
+	var target := get_interact_target()
+	if target == null:
+		_reset_hold()
+		return
+	if not target.is_hold():
+		_reset_hold()
+		if intent.interact_pressed:
+			_use_interactable(target)
+		return
+	if target != _hold_target:
+		_hold_target = target
+		_hold_s = 0.0
+	var reason := target.deny_reason(self)
+	if reason != &"":
+		_hold_s = 0.0
+		if intent.interact_pressed:
+			interact_denied.emit(reason)
+		return
+	_hold_s += delta
+	if _hold_s >= target.hold_interval_s - HealthComponent.TIMER_EPSILON:
+		_hold_s = maxf(0.0, _hold_s - target.hold_interval_s)
+		_use_interactable(target)
+
+
+func _reset_hold() -> void:
+	_hold_target = null
+	_hold_s = 0.0
+
+
+func _use_interactable(target: Interactable) -> bool:
+	var reason := target.use(self)
+	if reason != &"":
+		interact_denied.emit(reason)
+		return false
+	return true
 
 
 ## Uses the Interactable in view. Returns true if something was used; emits
@@ -175,11 +226,7 @@ func try_interact() -> bool:
 	var target := get_interact_target()
 	if target == null:
 		return false
-	var reason := target.use(self)
-	if reason != &"":
-		interact_denied.emit(reason)
-		return false
-	return true
+	return _use_interactable(target)
 
 
 ## Brings the player back at [param at] (sandbox match reset; F034/F038 add their own rules):

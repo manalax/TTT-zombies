@@ -22,6 +22,7 @@ const EXPECTED := {
 	&"item_purchased": ["peer_id", "kind", "item_id"],
 	&"door_opened": ["door_id", "peer_id"],
 	&"zone_unlocked": ["zone_id"],
+	&"barricade_changed": ["barricade_id", "planks"],
 }
 
 

@@ -1,6 +1,6 @@
 class_name DoorData
 extends GameData
-## A purchasable door/barricade that unlocks a map zone (DESIGN §10.2, §11).
+## A purchasable door that unlocks a map zone (DESIGN §10.2, §11).
 ## Zones are scene nodes (F017), so the zone id is not resolved here.
 
 @export_range(0, 50000, 50) var cost: int = 750

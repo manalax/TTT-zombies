@@ -21,4 +21,5 @@ attack_active_s = 0.2
 attack_recovery_s = 0.8
 attack_stagger = 15.0
 lunge_distance_m = 1.2
+barricade_tear_s = 1.2
 scene = ExtResource("2_scene")

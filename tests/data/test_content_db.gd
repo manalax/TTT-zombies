@@ -28,6 +28,7 @@ func test_shipped_content_is_indexed() -> void:
 		&"WaveSet",
 		&"PerkData",
 		&"DoorData",
+		&"BarricadeData",
 		&"LootTable",
 		&"MatchSettings",
 		&"PlayerDefaults",

@@ -74,4 +74,5 @@ See [ADR 0006](0006-parry-dodge.md).
 - **F013 dodge:** a movement state (the i-frames set `HealthComponent.invulnerable`).
 - **F014:** owns the loadout and weapon swapping, which replaces the F9 debug swap. `MeleeWeapon.equip()` is the swap point.
 - **F022:** the host runs the same weapon machine on network intents, and clients only render.
+- **HUD:** the temp HUD draws a charge ring around the crosshair from `get_charge_ratio()` (thick amber = heavy ready, red = no stamina; hidden for taps under 0.08 s).
 - **Performance:** about 6 samples × (1 ray + 1 shape query) per attacking combatant per tick. To be profiled in F055.

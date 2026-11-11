@@ -311,6 +311,7 @@ Tune numbers in data only (spreadsheet-style `.tres` or `.csv` import is accepta
 - Scales counts by living player count (`player_scale` curve in settings).
 - Unlocked-zone gating: only spawns in/adjacent to opened zones (plus "ambient" spawns in closed zones for door-opening tension — configurable).
 - *F019 implements:* active (unlocked-zone) points only, at least `min_spawn_distance_m` from every living Hunter, picked at random (seeded). If none qualify, it falls back to the farthest active point. Visibility, caps, breathers and ambient spawns are F044.
+- *F046:* a spawn point can sit in a **closet** behind a boarded window (`EnemySpawnPoint.barricade`). Enemies spawned there must breach the window before they reach anyone (§11).
 
 ### 8.4 Host customisation of waves (Firefight-style)
 - **MVP:** pick preset; adjust a few global sliders (enemy health ×, damage ×, spawn rate ×, special frequency ×).
@@ -359,12 +360,13 @@ Validation: `MatchSettings.validate()` returns warnings (e.g., "Traitor mode wit
   - **No kill bonus.** Overkill never pays, because only damage actually removed counts.
   - **Who earns:** only a player's hostile hit on a cult target (training dummies included).
   - **Tuning:** the numbers are in `content/economy/economy_rules`.
+- **Barricade repair** (F046, [ADR 0013](adr/0013-barricades.md)): +10 per plank nailed back (`BarricadeData.repair_points`, rounded like every award). Uncapped, and it pays at any time, intermission included.
 - Points are **per-player and private**; not shareable by default (host option `allow_gifting`).
 - Not earned for friendly-fire damage (negative penalty option).
 - Traitors earn points from cultists normally (cover).
 
 ### 10.2 Spend
-1. **Doors/barricades** — open zones (`DoorData.cost` × `door_cost_mult`, F017). Opening zones expands spawn areas, unlocks better loot (§10.4).
+1. **Doors** — open zones (`DoorData.cost` × `door_cost_mult`, F017). Opening zones expands spawn areas, unlocks better loot (§10.4).
 2. **Wall-buy stations** — weapons and ammo; costly ammo to enforce scarcity.
 3. **Perk altars** (Victorian-gothic "Sacraments"): e.g., *Iron Constitution* (+HP), *Second Wind* (stamina regen), *Sure Grip* (faster reload), *Riposte* (stronger parry), *Alms of the Dead* (extra loot), *Hallowed Edge* (damage vs specials). Max perks configurable (default 4).
 4. **Mystery chest / Reliquary** — random weapon for a fee (later milestone).
@@ -389,7 +391,7 @@ Zones have `LootTable` resources; deeper zones carry higher tier weights. Pickup
 
 ## 11. Maps & Level Design
 
-- **Structure:** each map is a Godot scene composed of **Zones** (`Zone` node = area + navmesh region + spawn points + loot spawns + doors). Zones are linked by **Doors/Barricades** with a point cost.
+- **Structure:** each map is a Godot scene composed of **Zones** (`Zone` node = area + navmesh region + spawn points + loot spawns + doors). Zones are linked by **Doors** with a point cost. Enemies enter through **boarded windows** (barricades) from spawn closets outside the playable area.
 - **MVP map ("Ashgrave Cathedral & Cloister"):** 5–6 zones, hub start (Crypt Chapel), progressing to nave, cloister, bell tower, catacombs, and a final sanctum for Round 12. Greybox with clear sightlines/ambush spots, choke points, and loops for kiting.
 - **Gameplay-affordances to include:** cult spawn points (player-controlled specials), safe-ish retreat corners, silver-vial pickup spots, sabotage spots for traitors (e.g., collapsing a door barricade) — *sabotage is a stretch goal, not in MVP.*
 - **Navigation:** one `NavigationRegion3D` per zone; doors toggle navmesh regions/links.
@@ -398,6 +400,11 @@ Zones have `LootTable` resources; deeper zones carry higher tier weights. Pickup
   - **Doors:** a `Door` uses `DoorData`. Pressing E spends `PointRules.door_price` (× `door_cost_mult`), and the door opens **permanently**. Opening any door into a zone unlocks it, and other doors into the same zone are bought separately.
   - **Navigation:** one navmesh is baked with closed doors as walls (`nav_blockers`). Each door enables its `NavigationLink3D` when opened, so the map is never re-baked.
   - **Announcements:** every door opening is announced publicly ("Player N opened the X"), without the cost.
+- *Implemented in F046* ([ADR 0013](adr/0013-barricades.md)):
+  - **Boarded windows:** a `Barricade` fills a gap in a wall. It holds `BarricadeData.plank_count` planks (6) and sits on the BARRIER physics layer: it always blocks bodies, but shots, swings and sight lines pass through.
+  - **Closets:** each window has a small closet outside with its spawn point. The closet is its own nav island.
+  - **Enemies:** an enemy spawned in a closet walks to the window and tears one plank per `EnemyData.barricade_tear_s` (one tearer per window; the rest wait). It swipes through at any player within reach. At zero planks, it climbs in (0.8 s, one at a time, can't be interrupted) and then chases normally.
+  - **Players:** hold E on the inside to nail a plank back every 0.75 s for points (§10.1).
 - **Verticality:** moderate; no climbing mechanics in MVP.
 - Level data files: `maps/<map_id>/map.tscn`, `map_data.tres`.
 
@@ -513,6 +520,7 @@ Each ID is a self-contained work item. Check dependencies first. "AC" = acceptan
 - **F043 Zealot, Flagellant common types.**
 - **F044 Director constraints** (special caps, breathers, visibility rules, player-scale). *AC:* property-style tests on spawn legality.
 - **F045 Default 12-wave `WaveSet`** and presets. *AC:* balanced playtest checklist in `docs/BALANCE.md`.
+- **F046 Boarded windows (barricades)**: spawn closets, plank tearing, swipes through the window, climbing in, hold-to-repair for points. *AC:* enemies breach a window plank by plank and climb in; players repair it for points. *(Built ahead of M2, on 2026-11-11.)*
 
 ### M5 — Content & polish for a playable
 - **F050 MVP map greybox** (Ashgrave) with 5–6 zones, spawn points, loot tables.

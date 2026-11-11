@@ -24,6 +24,7 @@ const ALLOWED_TYPES: Array[StringName] = [
 	&"FirearmStats",
 	&"PerkData",
 	&"DoorData",
+	&"BarricadeData",
 	&"LootTable",
 	&"LootEntry",
 ]

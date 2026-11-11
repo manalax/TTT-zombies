@@ -107,3 +107,39 @@ func test_round_counter_timer_and_banners() -> void:
 	assert_str(_hud.banner_text()).is_equal("ROUND 1")
 	Events.match_ended.emit(&"cult")
 	assert_str(_hud.banner_text()).is_equal("DEFEAT")
+
+
+func test_health_readout() -> void:
+	var health := _player.health
+	var full := ceili(health.max_health)
+	assert_str(_hud.health_text()).is_equal("HP  %d / %d" % [full, full])
+	assert_bool(_hud.health_low()).is_false()
+	Combat.apply(DamageEvent.world(health, 25.5, CombatTypes.DamageType.DEBUG))
+	assert_str(_hud.health_text()).is_equal("HP  %d / %d" % [ceili(full - 25.5), full])
+	Combat.apply(DamageEvent.world(health, health.current_health - 20.0))
+	assert_bool(_hud.health_low()).is_true()
+	await get_tree().process_frame
+	var bar: ProgressBar = _hud.get_node("BottomLeft/Health/Bar")
+	assert_float(bar.max_value).is_equal(health.max_health)
+	assert_float(bar.value).is_equal(health.current_health)
+	health.set_max(health.max_health + 25.0)
+	assert_str(_hud.health_text()).ends_with("/ %d" % (full + 25))
+
+
+func test_charge_ring() -> void:
+	var melee := _player.melee
+	var heavy := melee.stats.heavy_charge_s
+	assert_float(_hud.charge_ring_ratio()).is_equal(-1.0)
+	assert_bool(melee.machine.transition_to(&"Charging")).is_true()
+	melee.charge_s = TempHud.CHARGE_RING_DELAY_S * 0.5
+	assert_float(_hud.charge_ring_ratio()).is_equal(-1.0)  # a tap draws nothing
+	melee.charge_s = heavy * 0.5
+	assert_float(_hud.charge_ring_ratio()).is_equal_approx(0.5, 0.001)
+	assert_object(_hud.charge_ring_color()).is_equal(Color.WHITE)
+	melee.charge_s = heavy
+	assert_float(_hud.charge_ring_ratio()).is_equal(1.0)
+	assert_object(_hud.charge_ring_color()).is_equal(TempHud.WEAKPOINT_COLOR)
+	_player.stamina.current = 0.0
+	assert_object(_hud.charge_ring_color()).is_equal(TempHud.DENY_COLOR)
+	_player.loadout.set_active_immediate(Loadout.FIREARM_A)
+	assert_float(_hud.charge_ring_ratio()).is_equal(-1.0)

@@ -86,6 +86,11 @@ static func ammo_price(
 	return _price(AmmoRules.cost(base, _settings(settings)), rules)
 
 
+## Points for one repaired barricade plank (F046): flat, rounded up like every award.
+static func repair_points(base: int, rules: EconomyRules = null) -> int:
+	return _price(base, rules)
+
+
 static func _price(value: float, rules: EconomyRules) -> int:
 	return round_up(value, get_rules(rules).round_to)
 

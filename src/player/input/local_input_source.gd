@@ -72,6 +72,7 @@ func get_intent() -> MoveIntent:
 	intent.dodge_pressed = Input.is_action_just_pressed(&"dodge")
 	intent.reload_pressed = Input.is_action_just_pressed(&"reload")
 	intent.interact_pressed = Input.is_action_just_pressed(&"interact")
+	intent.interact_held = Input.is_action_pressed(&"interact")
 	for slot in 3:
 		if Input.is_action_just_pressed(StringName("weapon_slot_%d" % (slot + 1))):
 			intent.slot_pressed = slot

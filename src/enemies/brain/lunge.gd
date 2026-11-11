@@ -19,7 +19,7 @@ func _enter(_data: Dictionary) -> void:
 
 func _physics_update(delta: float) -> void:
 	var active := data().attack_active_s
-	enemy.move_direct(direction * data().lunge_distance_m / active)
+	enemy.move_direct(direction * data().lunge_distance_m * enemy.lunge_scale() / active)
 	elapsed += delta
 	var t := minf(elapsed / active, 1.0)
 	enemy.set_pose(&"swing", t)

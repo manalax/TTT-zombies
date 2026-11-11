@@ -7,6 +7,7 @@ var crouch_cancelled: bool = false
 var attack_held: bool = false
 var block_held: bool = false
 var aim_held: bool = false
+var interact_held: bool = false
 var _slot: int = -1
 var _cycle: int = 0
 var _reload: bool = false
@@ -55,6 +56,7 @@ func get_intent() -> MoveIntent:
 	intent.cycle = _cycle
 	intent.reload_pressed = _reload
 	intent.interact_pressed = _interact
+	intent.interact_held = interact_held
 	_slot = -1
 	_cycle = 0
 	_reload = false

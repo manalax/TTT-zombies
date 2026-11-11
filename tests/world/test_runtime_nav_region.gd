@@ -61,10 +61,17 @@ func test_arena_walkability() -> void:
 	assert_bool(_reachable(map, spawn, Vector3(-10, 2.0, -9.5))).is_false()  # 50°: too steep
 	assert_bool(_reachable(map, spawn, Vector3(3, 0.5, -8))).is_false()  # 0.5 m box: jump only
 	assert_bool(_reachable(map, spawn, Vector3(9, 1.3, -8))).is_false()  # 1.3 m box
+	# Spawn closets (F046) are islands behind their boarded windows: enemies reach the window's
+	# outer point, then the brain climbs them through.
 	for point in get_tree().get_nodes_in_group(EnemySpawnPoint.GROUP):
-		var from := (point as Node3D).global_position
-		var in_annex := (point as EnemySpawnPoint).zone.zone_id == &"annex"
-		assert_bool(_reachable(map, from, spawn)).is_equal(not in_annex)
+		var spawn_point := point as EnemySpawnPoint
+		var from := spawn_point.global_position
+		assert_bool(_reachable(map, from, spawn)).is_false()
+		var window := spawn_point.get_barricade()
+		assert_bool(_reachable(map, from, window.outer_point())).is_true()
+		assert_bool(_reachable(map, window.inner_point(), spawn)).is_equal(
+			spawn_point.zone.zone_id != &"annex"
+		)
 	# The annex is a separate island until a door into it opens (via the door's link).
 	var annex := Vector3(-40, 0, 0)
 	assert_bool(_reachable(map, spawn, annex)).is_false()
