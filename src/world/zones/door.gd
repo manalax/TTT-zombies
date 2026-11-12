@@ -5,7 +5,8 @@ extends StaticBody3D
 ## Closed: a WORLD collider in the `nav_blockers` group, so the map's navmesh is baked with the
 ## doorway shut and zones are separate nav islands. Buying it (Interactable, E) spends
 ## PointRules.door_price(DoorData.cost); opening is permanent: the slab sinks, collision goes,
-## the NavigationLink3D across the doorway is enabled, DoorData.unlocks_zone_id is unlocked and
+## the NavigationLink3D across the doorway is enabled until the async RuntimeNavRegion.rebake
+## has baked the doorway as floor, DoorData.unlocks_zone_id is unlocked and
 ## Events.door_opened is emitted. The local -Z/+Z sides are the two zones.
 
 signal opened(peer_id: int)
@@ -65,7 +66,12 @@ func open(peer_id: int = 0) -> bool:
 	is_open = true
 	_shape.set_deferred(&"disabled", true)
 	set_deferred(&"collision_layer", 0)
+	remove_from_group(NAV_BLOCKER_GROUP)
+	# The link connects the zones at once; the re-bake then opens a real corridor through the
+	# doorway (a single link point funnels crowds into an avoidance jam) and the link goes.
 	link.enabled = true
+	if is_inside_tree():
+		_rebake_nav.call_deferred()
 	refresh()
 	if is_inside_tree():
 		var tween := create_tween()
@@ -78,6 +84,15 @@ func open(peer_id: int = 0) -> bool:
 	opened.emit(peer_id)
 	Events.door_opened.emit(data.id, peer_id)
 	return true
+
+
+func _rebake_nav() -> void:
+	for region in RuntimeNavRegion.rebake_all(get_tree()):
+		region.baked.connect(_on_nav_rebaked, CONNECT_ONE_SHOT)
+
+
+func _on_nav_rebaked() -> void:
+	link.enabled = false
 
 
 func _on_used(player: Player) -> void:

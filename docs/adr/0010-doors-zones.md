@@ -45,14 +45,18 @@ It builds on F016 (`try_spend`, `PointRules.door_price`) and F015 (the runtime n
 - **Multiple doors into one zone:** any of them unlocks it (once), but the others stay closed and are bought separately (CoD style).
 - A door's two zones are its local −Z/+Z sides. Only `unlocks_zone_id` is unlocked, since the other side is where the buyer stands.
 
-### Navigation: bake with doors shut, open with links
+### Navigation: bake with doors shut, open with a link, then re-bake
 - `RuntimeNavRegion` adds every body in `nav_blockers` to the bake (they don't have to be under its `source`). Closed doors are therefore walls, and each zone is a separate nav island.
-- Each door's `NavigationLink3D` (endpoints 1.2 m either side, bidirectional) is disabled until it opens. Enabling it connects the islands, and agents repath through it on their next repath (≤ 0.3 s).
-- **Why not one region per zone, or a re-bake:**
-  - Per-zone regions can't represent a closed door between two already-unlocked zones, and still need a doorway connection.
-  - Re-baking costs about 30 ms per door on the arena, and grows with map size.
-  - Links cost nothing at runtime and work for doors added after the bake.
-- Like region changes, link changes reach the map after a few physics frames (async sync, ADR 0008).
+- Each door's `NavigationLink3D` (endpoints 1.2 m either side, bidirectional) is disabled until it opens.
+- **Opening a door:**
+  1. The door leaves `nav_blockers` and enables its link, so the zones connect within a few physics frames.
+  2. It calls `RuntimeNavRegion.rebake_all()` (deferred, after its collision is off).
+  3. The re-bake reuses the static geometry cached at load, parses only the current `nav_blockers`, and bakes with `bake_from_source_geometry_data_async`. Requests made during a bake are coalesced, and `baked` is emitted once nothing is pending.
+  4. On `baked`, the door disables its link. The doorway is now ordinary floor.
+- **Why re-bake (changed from link-only):** with only a link, every path through a doorway converges on the link's start point. An agent advances only within `path_desired_distance` (0.6 m) of it, and avoidance keeps acolytes about 0.9 m apart. Crowds therefore circled the point and stalled whenever one acolyte stood on it. In a 30-acolyte test with the player just past the door, 12 stayed stuck for good. With the corridor, 27 got through in 14 s, and the rest were queued behind the mob around the player.
+- **Cost:** under 0.4 ms on the main thread. The bake itself, off the main thread, takes about 16 ms on the test level and 30 ms on the arena. It runs once per door opened.
+- **Why not one region per zone:** per-zone regions can't represent a closed door between two already-unlocked zones, and they still need a doorway connection.
+- Region and link changes reach the map after a few physics frames (async sync, ADR 0008).
 
 ### Interaction: the `Interactable` component
 - An `Interactable` child of any WORLD collider has `prompt`, `cost` (−1 = free), `enabled`, `deny_reason(player)` (`&"disabled"` / `&"points"`), `use(player)` and `used(player)`. It replaces F014's `interactable` group + duck-typed `interact()`.

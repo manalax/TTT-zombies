@@ -398,7 +398,7 @@ Zones have `LootTable` resources; deeper zones carry higher tier weights. Pickup
 - *Implemented in F017* ([ADR 0010](adr/0010-doors-zones.md)):
   - **Zones:** a `Zone` is an Area3D with a `zone_id`. Its child `EnemySpawnPoint`s are active only while it's unlocked, and the start zone uses `starts_unlocked`.
   - **Doors:** a `Door` uses `DoorData`. Pressing E spends `PointRules.door_price` (× `door_cost_mult`), and the door opens **permanently**. Opening any door into a zone unlocks it, and other doors into the same zone are bought separately.
-  - **Navigation:** one navmesh is baked with closed doors as walls (`nav_blockers`). Each door enables its `NavigationLink3D` when opened, so the map is never re-baked.
+  - **Navigation:** one navmesh is baked with closed doors as walls (`nav_blockers`). Opening a door enables its `NavigationLink3D` at once, then re-bakes the navmesh off the main thread so the doorway becomes a real corridor, and the link is switched off (a single link point jammed crowds).
   - **Announcements:** every door opening is announced publicly ("Player N opened the X"), without the cost.
 - *Implemented in F046* ([ADR 0013](adr/0013-barricades.md)):
   - **Boarded windows:** a `Barricade` fills a gap in a wall. It holds `BarricadeData.plank_count` planks (6) and sits on the BARRIER physics layer: it always blocks bodies, but shots, swings and sight lines pass through.

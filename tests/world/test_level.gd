@@ -6,6 +6,7 @@ extends GdUnitTestSuite
 const LEVEL := preload("res://maps/dev/test_level/test_level.tscn")
 const MAIN_SCENE := preload("res://src/main/main.tscn")
 const NAV_SYNC_FRAMES := 8
+const World := preload("res://tests/enemies/enemy_test_world.gd")
 
 const EXPECTED_STATIONS := {
 	&"start": ["weapon:revolver", "ammo", "perk:iron_constitution"],
@@ -157,3 +158,35 @@ func test_run_ends_at_the_main_menu() -> void:
 	assert_object(main.get_node_or_null("MainMenu")).is_instanceof(MainMenu)
 	assert_str(Game.current_level_path).is_equal("")
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
+## A pack funnels through an open doorway instead of stalling in front of it: the re-bake
+## after opening makes the doorway a corridor (one link point jammed avoidance agents).
+func test_crowd_streams_through_open_door() -> void:
+	await _build()
+	(_level.get_node("MatchManager") as MatchManager).set_physics_process(false)
+	var player := _level.get_node("Player") as Player
+	player.health.invulnerable = true
+	player.global_position = Vector3(24, 0.05, 0)
+	var door := _door("HallDoor")
+	await _open("HallDoor")
+	assert_bool(door.link.enabled).is_false()  # re-baked: the corridor replaced the link
+	var pack: Array[EnemyBase] = []
+	for i in 20:
+		pack.append(World.acolyte(_level, Vector3(2.0 + (i % 5) * 1.8, 0.05, -7.0 + (i / 5) * 3.0)))
+	var frames := 0
+	var through := func(e: EnemyBase) -> bool: return e.global_position.x > 12.5
+	while frames < 600 and not pack.all(through):
+		await get_tree().physics_frame
+		frames += 1
+	var behind := pack.size() - pack.filter(through).size()
+	(
+		assert_int(behind)
+		. override_failure_message(
+			(
+				"%d of %d acolytes still behind the door after %d frames"
+				% [behind, pack.size(), frames]
+			)
+		)
+		. is_equal(0)
+	)

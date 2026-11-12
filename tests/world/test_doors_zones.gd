@@ -136,6 +136,34 @@ func test_open_door_connects_nav_and_cultists_come_through() -> void:
 	assert_bool(crossed).is_true()
 
 
+func test_opening_rebakes_the_doorway_into_a_corridor() -> void:
+	var region := _world.get_node("NavRegion") as RuntimeNavRegion
+	assert_bool(_door.open(1)).is_true()
+	assert_bool(_door.link.enabled).is_true()  # connected at once, before the bake lands
+	assert_bool(_door.is_in_group(Door.NAV_BLOCKER_GROUP)).is_false()
+	await region.baked
+	await get_tree().process_frame  # the door's own baked handler runs after this await
+	assert_bool(_door.link.enabled).is_false()
+	for i in NAV_SYNC_FRAMES:
+		await get_tree().physics_frame
+	assert_bool(_path_into_annex()).is_true()
+	# Paths from either side of the room cross the doorway on their own lines, not through one
+	# shared link point.
+	var left := NavigationServer3D.map_get_path(_map(), Vector3(-4, 0, 6), Vector3(-4, 0, -6), true)
+	var right := NavigationServer3D.map_get_path(_map(), Vector3(4, 0, 6), Vector3(4, 0, -6), true)
+	assert_float(_crossing_x(left)).is_less(_crossing_x(right) - 0.5)
+
+
+## Where [param path] crosses z = 0.
+func _crossing_x(path: PackedVector3Array) -> float:
+	for i in range(1, path.size()):
+		var a := path[i - 1]
+		var b := path[i]
+		if signf(a.z) != signf(b.z):
+			return lerpf(a.x, b.x, a.z / (a.z - b.z))
+	return INF
+
+
 func test_second_door_into_unlocked_zone_stays_closed() -> void:
 	var postern: Door = ZoneWorld.door(&"annex_postern", Vector3(10, 0, 10))
 	_world.add_child(postern)

@@ -87,3 +87,69 @@ func _reachable(map: RID, from: Vector3, to: Vector3) -> bool:
 		return false
 	var path := NavigationServer3D.map_get_path(map, from, goal, true)
 	return not path.is_empty() and path[path.size() - 1].distance_to(goal) < 0.3
+
+
+## Two rooms split by a wall with a 3 m gap plugged by a nav blocker (like a closed door).
+func _plugged_world() -> Array:
+	var boxes: Array[AABB] = [
+		AABB(Vector3(-15, 0, -0.5), Vector3(13.5, 3, 1)),
+		AABB(Vector3(1.5, 0, -0.5), Vector3(13.5, 3, 1))
+	]
+	var world: Node3D = auto_free(World.world(30.0, boxes))
+	var plugs: Array[StaticBody3D] = []
+	for x in [-1.5, 1.5]:  # two halves, so each can be removed on its own
+		var plug := StaticBody3D.new()
+		plug.collision_layer = PhysicsLayers.WORLD
+		plug.add_to_group(RuntimeNavRegion.NAV_BLOCKER_GROUP)
+		var shape := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = Vector3(1.5, 3, 1)
+		shape.shape = box
+		shape.position = Vector3(x * 0.5, 1.5, 0)
+		plug.add_child(shape)
+		world.add_child(plug)
+		plugs.append(plug)
+	add_child(world)
+	await get_tree().process_frame
+	return [world.get_node("NavRegion"), plugs]
+
+
+func _crosses(nav: RuntimeNavRegion) -> bool:
+	for i in 6:
+		await get_tree().physics_frame
+	var path := NavigationServer3D.map_get_path(
+		nav.get_navigation_map(), Vector3(0, 0, 8), Vector3(0, 0, -8), true
+	)
+	return not path.is_empty() and path[path.size() - 1].z < -7.0
+
+
+func test_rebake_drops_removed_and_non_colliding_blockers() -> void:
+	var built: Array = await _plugged_world()
+	var nav: RuntimeNavRegion = built[0]
+	var plugs: Array[StaticBody3D] = built[1]
+	assert_bool(await _crosses(nav)).is_false()
+	plugs[0].remove_from_group(RuntimeNavRegion.NAV_BLOCKER_GROUP)
+	plugs[1].collision_layer = 0  # still in the group, but no longer collides
+	nav.rebake()
+	assert_bool(nav.is_rebaking()).is_true()
+	await nav.baked
+	assert_bool(nav.is_rebaking()).is_false()
+	assert_bool(await _crosses(nav)).is_true()
+
+
+func test_rebake_requests_during_a_bake_are_coalesced() -> void:
+	var built: Array = await _plugged_world()
+	var nav: RuntimeNavRegion = built[0]
+	var plugs: Array[StaticBody3D] = built[1]
+	var bakes: Array[int] = [0]
+	nav.baked.connect(func() -> void: bakes[0] += 1)
+	plugs[0].remove_from_group(RuntimeNavRegion.NAV_BLOCKER_GROUP)
+	nav.rebake()
+	plugs[1].remove_from_group(RuntimeNavRegion.NAV_BLOCKER_GROUP)  # after the first bake began
+	nav.rebake()
+	await nav.baked
+	assert_int(bakes[0]).is_equal(1)  # one signal, covering both changes
+	var opened_right := false  # floor where the second plug stood
+	for vertex in nav.navigation_mesh.vertices:
+		opened_right = opened_right or (vertex.x > 0.5 and absf(vertex.z) < 0.3)
+	assert_bool(opened_right).is_true()
