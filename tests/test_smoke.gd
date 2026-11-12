@@ -29,7 +29,14 @@ func test_main_scene_loads() -> void:
 	assert_str(main.name).is_equal("Main")
 
 
-## F010: main boots the sandbox arena, which must contain a player.
+## F056: main boots into the placeholder main menu.
+func test_main_boots_menu() -> void:
+	var main: Node = auto_free((load(MAIN_SCENE) as PackedScene).instantiate())
+	add_child(main)
+	assert_object(main.get_node_or_null("MainMenu")).is_instanceof(MainMenu)
+
+
+## F010: the sandbox arena (Test Arena) must contain a player.
 func test_sandbox_arena_has_player() -> void:
 	var packed: PackedScene = load(ARENA_SCENE)
 	assert_object(packed).is_not_null()

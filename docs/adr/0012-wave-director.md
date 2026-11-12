@@ -82,4 +82,5 @@ DESIGN §4.1 sets the lifecycle: Intermission ⇄ WaveActive up to round N, then
 - **F034/F038:** death, conversion and co-op respawn replace the sandbox reset during a match. `Player.respawn` is the shared primitive.
 - **F044:** spawn visibility, special caps and cooldowns, breathers, ambient spawns, and stat and modifier scaling plug into `WaveRules` and the director.
 - **F045:** the real 12-wave set, plus presets.
+- **F057:** `MatchManager.auto_start` starts the match on load, and `end_action = MAIN_MENU` returns to the main menu after Results instead of the sandbox reset (the test level uses both; the arena keeps the defaults).
 - **Intermission extras** (skip vote, regen per `regen_mode`) are small additions to `MatchManager`.

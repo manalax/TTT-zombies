@@ -529,6 +529,8 @@ Each ID is a self-contained work item. Check dependencies first. "AC" = acceptan
 - **F053 Perks (6–8) & consumables.**
 - **F054 Audio service + placeholder cues; spatial cues for specials.**
 - **F055 Performance pass** and optional C# port of proven hot spots (§12.4).
+- **F056 Main menu & level select (placeholder).** Boot shows a menu: Play (the F057 test level), Test Arena (the dev sandbox) and Exit. In a level, Esc opens a pause menu (Resume / Main Menu / Exit with a confirmation). The `Game` autoload routes menu ↔ level, and `src/main/main.gd` swaps the screens. *AC:* boot shows the menu; Test Arena loads the sandbox; Exit quits; the pause menu returns to the menu. *(Built 2026-11-11, ahead of M2.)*
+- **F057 Placeholder playable level** (`maps/dev/test_level`). It has three zones in a chain: Start → Hall (door 750) → Vault (door 1250). Seven boarded windows (3 / 2 / 2) each have a closet spawn that only opens with its room. The stations escalate: Start has the revolver, ammo and Iron Constitution; Hall has the rifle, blunderbuss, Second Wind and Sure Grip; Vault has the greatsword, arming sword, ammo and Riposte. Play loads it, the waves start automatically (`MatchManager.auto_start`), and the run ends at the main menu (`end_action = MAIN_MENU`). *AC:* every level feature is present and reachable, and a match starts on load. *(Built 2026-11-12, ahead of M2.)*
 
 ### M6 — Host power tools
 - **F060 Full `MatchSettings` panel** (all §9 fields) with presets & validation warnings.

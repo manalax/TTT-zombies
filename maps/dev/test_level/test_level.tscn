@@ -1,0 +1,679 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://src/player/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://src/world/shop/wall_buy.tscn" id="3_wallbuy"]
+[ext_resource type="Script" path="res://src/world/nav/runtime_nav_region.gd" id="4_nav"]
+[ext_resource type="Script" path="res://src/enemies/enemy_registry.gd" id="5_registry"]
+[ext_resource type="Script" path="res://src/world/spawn/enemy_spawn_point.gd" id="6_spawn"]
+[ext_resource type="Script" path="res://src/world/zones/zone.gd" id="7_zone"]
+[ext_resource type="PackedScene" path="res://src/world/zones/door.tscn" id="8_door"]
+[ext_resource type="PackedScene" path="res://src/world/shop/ammo_station.tscn" id="9_ammo"]
+[ext_resource type="PackedScene" path="res://src/world/shop/perk_altar.tscn" id="10_altar"]
+[ext_resource type="Script" path="res://src/match/match_manager.gd" id="11_match"]
+[ext_resource type="PackedScene" path="res://src/world/barricade/barricade.tscn" id="12_barricade"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
+sky_top_color = Color(0.12, 0.13, 0.18, 1)
+sky_horizon_color = Color(0.36, 0.32, 0.3, 1)
+ground_bottom_color = Color(0.1, 0.09, 0.09, 1)
+ground_horizon_color = Color(0.36, 0.32, 0.3, 1)
+
+[sub_resource type="Sky" id="Sky_res"]
+sky_material = SubResource("Sky_mat")
+
+[sub_resource type="Environment" id="Env"]
+background_mode = 2
+sky = SubResource("Sky_res")
+ambient_light_source = 3
+tonemap_mode = 2
+fog_enabled = true
+fog_density = 0.004
+
+[sub_resource type="BoxShape3D" id="Box_zone"]
+size = Vector3(24, 4, 20)
+
+[sub_resource type="StandardMaterial3D" id="Mat_floor_start"]
+albedo_color = Color(0.34, 0.32, 0.29, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_floor_hall"]
+albedo_color = Color(0.28, 0.31, 0.36, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_floor_vault"]
+albedo_color = Color(0.36, 0.28, 0.27, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_wall"]
+albedo_color = Color(0.22, 0.21, 0.22, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_closet"]
+albedo_color = Color(0.15, 0.14, 0.15, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_frame"]
+albedo_color = Color(0.45, 0.38, 0.28, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_cover"]
+albedo_color = Color(0.4, 0.38, 0.33, 1)
+roughness = 0.9
+
+[node name="TestLevel" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.81915206, 0.43938506, -0.36868784, 0, 0.64278764, 0.76604444, 0.57357645, -0.62750685, 0.5265408, 0, 0, 0)
+light_energy = 1.1
+shadow_enabled = true
+
+[node name="Geometry" type="Node3D" parent="."]
+
+[node name="FloorStart" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+use_collision = true
+size = Vector3(25, 1, 21)
+material = SubResource("Mat_floor_start")
+
+[node name="FloorHall" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.5, 0)
+use_collision = true
+size = Vector3(25, 1, 21)
+material = SubResource("Mat_floor_hall")
+
+[node name="FloorVault" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, -0.5, 0)
+use_collision = true
+size = Vector3(25, 1, 21)
+material = SubResource("Mat_floor_vault")
+
+[node name="WallNorth_0" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.85, 2, -10.5)
+use_collision = true
+size = Vector3(7.3, 4, 1)
+material = SubResource("Mat_wall")
+
+[node name="WallNorth_1" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 2, -10.5)
+use_collision = true
+size = Vector3(25.6, 4, 1)
+material = SubResource("Mat_wall")
+
+[node name="WallNorth_2" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 2, -10.5)
+use_collision = true
+size = Vector3(21.6, 4, 1)
+material = SubResource("Mat_wall")
+
+[node name="WallNorth_3" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54.85, 2, -10.5)
+use_collision = true
+size = Vector3(11.3, 4, 1)
+material = SubResource("Mat_wall")
+
+[node name="WallSouth_0" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.85, 2, 10.5)
+use_collision = true
+size = Vector3(15.3, 4, 1)
+material = SubResource("Mat_wall")
+
+[node name="WallSouth_1" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 2, 10.5)
+use_collision = true
+size = Vector3(17.6, 4, 1)
+material = SubResource("Mat_wall")
+
+[node name="WallSouth_2" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42.85, 2, 10.5)
+use_collision = true
+size = Vector3(35.3, 4, 1)
+material = SubResource("Mat_wall")
+
+[node name="WallWest_0" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.5, 2, -5.6)
+use_collision = true
+size = Vector3(1, 4, 8.8)
+material = SubResource("Mat_wall")
+
+[node name="WallWest_1" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.5, 2, 5.6)
+use_collision = true
+size = Vector3(1, 4, 8.8)
+material = SubResource("Mat_wall")
+
+[node name="WallEast_0" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.5, 2, -5.6)
+use_collision = true
+size = Vector3(1, 4, 8.8)
+material = SubResource("Mat_wall")
+
+[node name="WallEast_1" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.5, 2, 5.6)
+use_collision = true
+size = Vector3(1, 4, 8.8)
+material = SubResource("Mat_wall")
+
+[node name="WallStartHall_0" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 2, -5.6)
+use_collision = true
+size = Vector3(1, 4, 8.8)
+material = SubResource("Mat_wall")
+
+[node name="WallStartHall_1" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 2, 5.6)
+use_collision = true
+size = Vector3(1, 4, 8.8)
+material = SubResource("Mat_wall")
+
+[node name="WallHallVault_0" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 2, -5.6)
+use_collision = true
+size = Vector3(1, 4, 8.8)
+material = SubResource("Mat_wall")
+
+[node name="WallHallVault_1" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 2, 5.6)
+use_collision = true
+size = Vector3(1, 4, 8.8)
+material = SubResource("Mat_wall")
+
+[node name="DoorLintelHall" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 3.5, 0)
+use_collision = true
+size = Vector3(1, 1, 2.4)
+material = SubResource("Mat_frame")
+
+[node name="DoorLintelVault" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 36, 3.5, 0)
+use_collision = true
+size = Vector3(1, 1, 2.4)
+material = SubResource("Mat_frame")
+
+[node name="Closets" type="Node3D" parent="Geometry"]
+
+[node name="Lintel_start_west" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12.5, 3.2, 0)
+use_collision = true
+size = Vector3(1, 1.6, 2.4)
+material = SubResource("Mat_frame")
+
+[node name="start_west" type="Node3D" parent="Geometry/Closets"]
+
+[node name="Floor" type="CSGBox3D" parent="Geometry/Closets/start_west"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, -0.5, 0)
+use_collision = true
+size = Vector3(4, 1, 7)
+material = SubResource("Mat_closet")
+
+[node name="SideA" type="CSGBox3D" parent="Geometry/Closets/start_west"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 2, -3.25)
+use_collision = true
+size = Vector3(4, 4, 0.5)
+material = SubResource("Mat_wall")
+
+[node name="SideB" type="CSGBox3D" parent="Geometry/Closets/start_west"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 2, 3.25)
+use_collision = true
+size = Vector3(4, 4, 0.5)
+material = SubResource("Mat_wall")
+
+[node name="Back" type="CSGBox3D" parent="Geometry/Closets/start_west"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -17.25, 2, 0)
+use_collision = true
+size = Vector3(0.5, 4, 7)
+material = SubResource("Mat_wall")
+
+[node name="Lintel_start_north" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 3.2, -10.5)
+use_collision = true
+size = Vector3(2.4, 1.6, 1)
+material = SubResource("Mat_frame")
+
+[node name="start_north" type="Node3D" parent="Geometry/Closets"]
+
+[node name="Floor" type="CSGBox3D" parent="Geometry/Closets/start_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -0.5, -13)
+use_collision = true
+size = Vector3(7, 1, 4)
+material = SubResource("Mat_closet")
+
+[node name="SideA" type="CSGBox3D" parent="Geometry/Closets/start_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.25, 2, -13)
+use_collision = true
+size = Vector3(0.5, 4, 4)
+material = SubResource("Mat_wall")
+
+[node name="SideB" type="CSGBox3D" parent="Geometry/Closets/start_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 2, -13)
+use_collision = true
+size = Vector3(0.5, 4, 4)
+material = SubResource("Mat_wall")
+
+[node name="Back" type="CSGBox3D" parent="Geometry/Closets/start_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, -15.25)
+use_collision = true
+size = Vector3(7, 4, 0.5)
+material = SubResource("Mat_wall")
+
+[node name="Lintel_start_south" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 3.2, 10.5)
+use_collision = true
+size = Vector3(2.4, 1.6, 1)
+material = SubResource("Mat_frame")
+
+[node name="start_south" type="Node3D" parent="Geometry/Closets"]
+
+[node name="Floor" type="CSGBox3D" parent="Geometry/Closets/start_south"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, -0.5, 13)
+use_collision = true
+size = Vector3(7, 1, 4)
+material = SubResource("Mat_closet")
+
+[node name="SideA" type="CSGBox3D" parent="Geometry/Closets/start_south"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 2, 13)
+use_collision = true
+size = Vector3(0.5, 4, 4)
+material = SubResource("Mat_wall")
+
+[node name="SideB" type="CSGBox3D" parent="Geometry/Closets/start_south"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.25, 2, 13)
+use_collision = true
+size = Vector3(0.5, 4, 4)
+material = SubResource("Mat_wall")
+
+[node name="Back" type="CSGBox3D" parent="Geometry/Closets/start_south"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, 15.25)
+use_collision = true
+size = Vector3(7, 4, 0.5)
+material = SubResource("Mat_wall")
+
+[node name="Lintel_hall_north" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 3.2, -10.5)
+use_collision = true
+size = Vector3(2.4, 1.6, 1)
+material = SubResource("Mat_frame")
+
+[node name="hall_north" type="Node3D" parent="Geometry/Closets"]
+
+[node name="Floor" type="CSGBox3D" parent="Geometry/Closets/hall_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.5, -13)
+use_collision = true
+size = Vector3(7, 1, 4)
+material = SubResource("Mat_closet")
+
+[node name="SideA" type="CSGBox3D" parent="Geometry/Closets/hall_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.75, 2, -13)
+use_collision = true
+size = Vector3(0.5, 4, 4)
+material = SubResource("Mat_wall")
+
+[node name="SideB" type="CSGBox3D" parent="Geometry/Closets/hall_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.25, 2, -13)
+use_collision = true
+size = Vector3(0.5, 4, 4)
+material = SubResource("Mat_wall")
+
+[node name="Back" type="CSGBox3D" parent="Geometry/Closets/hall_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 2, -15.25)
+use_collision = true
+size = Vector3(7, 4, 0.5)
+material = SubResource("Mat_wall")
+
+[node name="Lintel_hall_south" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 3.2, 10.5)
+use_collision = true
+size = Vector3(2.4, 1.6, 1)
+material = SubResource("Mat_frame")
+
+[node name="hall_south" type="Node3D" parent="Geometry/Closets"]
+
+[node name="Floor" type="CSGBox3D" parent="Geometry/Closets/hall_south"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, -0.5, 13)
+use_collision = true
+size = Vector3(7, 1, 4)
+material = SubResource("Mat_closet")
+
+[node name="SideA" type="CSGBox3D" parent="Geometry/Closets/hall_south"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.75, 2, 13)
+use_collision = true
+size = Vector3(0.5, 4, 4)
+material = SubResource("Mat_wall")
+
+[node name="SideB" type="CSGBox3D" parent="Geometry/Closets/hall_south"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 27.25, 2, 13)
+use_collision = true
+size = Vector3(0.5, 4, 4)
+material = SubResource("Mat_wall")
+
+[node name="Back" type="CSGBox3D" parent="Geometry/Closets/hall_south"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 2, 15.25)
+use_collision = true
+size = Vector3(7, 4, 0.5)
+material = SubResource("Mat_wall")
+
+[node name="Lintel_vault_north" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 3.2, -10.5)
+use_collision = true
+size = Vector3(2.4, 1.6, 1)
+material = SubResource("Mat_frame")
+
+[node name="vault_north" type="Node3D" parent="Geometry/Closets"]
+
+[node name="Floor" type="CSGBox3D" parent="Geometry/Closets/vault_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, -0.5, -13)
+use_collision = true
+size = Vector3(7, 1, 4)
+material = SubResource("Mat_closet")
+
+[node name="SideA" type="CSGBox3D" parent="Geometry/Closets/vault_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 44.75, 2, -13)
+use_collision = true
+size = Vector3(0.5, 4, 4)
+material = SubResource("Mat_wall")
+
+[node name="SideB" type="CSGBox3D" parent="Geometry/Closets/vault_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.25, 2, -13)
+use_collision = true
+size = Vector3(0.5, 4, 4)
+material = SubResource("Mat_wall")
+
+[node name="Back" type="CSGBox3D" parent="Geometry/Closets/vault_north"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 2, -15.25)
+use_collision = true
+size = Vector3(7, 4, 0.5)
+material = SubResource("Mat_wall")
+
+[node name="Lintel_vault_east" type="CSGBox3D" parent="Geometry"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 60.5, 3.2, 0)
+use_collision = true
+size = Vector3(1, 1.6, 2.4)
+material = SubResource("Mat_frame")
+
+[node name="vault_east" type="Node3D" parent="Geometry/Closets"]
+
+[node name="Floor" type="CSGBox3D" parent="Geometry/Closets/vault_east"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63, -0.5, 0)
+use_collision = true
+size = Vector3(4, 1, 7)
+material = SubResource("Mat_closet")
+
+[node name="SideA" type="CSGBox3D" parent="Geometry/Closets/vault_east"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63, 2, -3.25)
+use_collision = true
+size = Vector3(4, 4, 0.5)
+material = SubResource("Mat_wall")
+
+[node name="SideB" type="CSGBox3D" parent="Geometry/Closets/vault_east"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63, 2, 3.25)
+use_collision = true
+size = Vector3(4, 4, 0.5)
+material = SubResource("Mat_wall")
+
+[node name="Back" type="CSGBox3D" parent="Geometry/Closets/vault_east"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 65.25, 2, 0)
+use_collision = true
+size = Vector3(0.5, 4, 7)
+material = SubResource("Mat_wall")
+
+[node name="Cover" type="Node3D" parent="Geometry"]
+
+[node name="PillarStartA" type="CSGBox3D" parent="Geometry/Cover"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2, -4)
+use_collision = true
+size = Vector3(1, 4, 1)
+material = SubResource("Mat_cover")
+
+[node name="PillarStartB" type="CSGBox3D" parent="Geometry/Cover"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2, -3)
+use_collision = true
+size = Vector3(1, 4, 1)
+material = SubResource("Mat_cover")
+
+[node name="CrateStart" type="CSGBox3D" parent="Geometry/Cover"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0.5, 5)
+use_collision = true
+size = Vector3(1.5, 1, 1.5)
+material = SubResource("Mat_cover")
+
+[node name="PillarHallA" type="CSGBox3D" parent="Geometry/Cover"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 2, -4)
+use_collision = true
+size = Vector3(1.2, 4, 1.2)
+material = SubResource("Mat_cover")
+
+[node name="PillarHallB" type="CSGBox3D" parent="Geometry/Cover"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 30, 2, 4)
+use_collision = true
+size = Vector3(1.2, 4, 1.2)
+material = SubResource("Mat_cover")
+
+[node name="CrateHall" type="CSGBox3D" parent="Geometry/Cover"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.6, 0)
+use_collision = true
+size = Vector3(2, 1.2, 1)
+material = SubResource("Mat_cover")
+
+[node name="PillarVaultA" type="CSGBox3D" parent="Geometry/Cover"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 2, 4)
+use_collision = true
+size = Vector3(1.2, 4, 1.2)
+material = SubResource("Mat_cover")
+
+[node name="PillarVaultB" type="CSGBox3D" parent="Geometry/Cover"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 2, -4)
+use_collision = true
+size = Vector3(1.2, 4, 1.2)
+material = SubResource("Mat_cover")
+
+[node name="CrateVault" type="CSGBox3D" parent="Geometry/Cover"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 0.6, 3)
+use_collision = true
+size = Vector3(1, 1.2, 2)
+material = SubResource("Mat_cover")
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 4)
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 4)
+
+[node name="Label_Hint" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8, 7)
+billboard = 1
+text = "Hold E at a window to repair · E to buy · Esc menu"
+font_size = 40
+outline_size = 8
+
+[node name="NavRegion" type="NavigationRegion3D" parent="."]
+script = ExtResource("4_nav")
+source = NodePath("../Geometry")
+
+[node name="Enemies" type="Node3D" parent="."]
+script = ExtResource("5_registry")
+
+[node name="ZoneStart" type="Area3D" parent="."]
+script = ExtResource("7_zone")
+zone_id = &"start"
+starts_unlocked = true
+
+[node name="Shape" type="CollisionShape3D" parent="ZoneStart"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+shape = SubResource("Box_zone")
+
+[node name="Label" type="Label3D" parent="ZoneStart"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4, 0)
+billboard = 1
+text = "Start"
+font_size = 56
+outline_size = 8
+
+[node name="EnemySpawns" type="Node3D" parent="ZoneStart"]
+
+[node name="Spawn_start_west" type="Marker3D" parent="ZoneStart/EnemySpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.5, 0.1, 0)
+script = ExtResource("6_spawn")
+barricade = NodePath("../../../Barricades/start_west")
+max_spread_index = 6
+
+[node name="Spawn_start_north" type="Marker3D" parent="ZoneStart/EnemySpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0.1, -13.5)
+script = ExtResource("6_spawn")
+barricade = NodePath("../../../Barricades/start_north")
+max_spread_index = 6
+
+[node name="Spawn_start_south" type="Marker3D" parent="ZoneStart/EnemySpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.1, 13.5)
+script = ExtResource("6_spawn")
+barricade = NodePath("../../../Barricades/start_south")
+max_spread_index = 6
+
+[node name="ZoneHall" type="Area3D" parent="."]
+script = ExtResource("7_zone")
+zone_id = &"hall"
+
+[node name="Shape" type="CollisionShape3D" parent="ZoneHall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 1.5, 0)
+shape = SubResource("Box_zone")
+
+[node name="Label" type="Label3D" parent="ZoneHall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 3.4, 0)
+billboard = 1
+text = "Hall (locked)"
+font_size = 56
+outline_size = 8
+
+[node name="EnemySpawns" type="Node3D" parent="ZoneHall"]
+
+[node name="Spawn_hall_north" type="Marker3D" parent="ZoneHall/EnemySpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.1, -13.5)
+script = ExtResource("6_spawn")
+barricade = NodePath("../../../Barricades/hall_north")
+max_spread_index = 6
+
+[node name="Spawn_hall_south" type="Marker3D" parent="ZoneHall/EnemySpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0.1, 13.5)
+script = ExtResource("6_spawn")
+barricade = NodePath("../../../Barricades/hall_south")
+max_spread_index = 6
+
+[node name="ZoneVault" type="Area3D" parent="."]
+script = ExtResource("7_zone")
+zone_id = &"vault"
+
+[node name="Shape" type="CollisionShape3D" parent="ZoneVault"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 1.5, 0)
+shape = SubResource("Box_zone")
+
+[node name="Label" type="Label3D" parent="ZoneVault"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 3.4, 0)
+billboard = 1
+text = "Vault (locked)"
+font_size = 56
+outline_size = 8
+
+[node name="EnemySpawns" type="Node3D" parent="ZoneVault"]
+
+[node name="Spawn_vault_north" type="Marker3D" parent="ZoneVault/EnemySpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 0.1, -13.5)
+script = ExtResource("6_spawn")
+barricade = NodePath("../../../Barricades/vault_north")
+max_spread_index = 6
+
+[node name="Spawn_vault_east" type="Marker3D" parent="ZoneVault/EnemySpawns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 63.5, 0.1, 0)
+script = ExtResource("6_spawn")
+barricade = NodePath("../../../Barricades/vault_east")
+max_spread_index = 6
+
+[node name="Barricades" type="Node3D" parent="."]
+
+[node name="start_west" parent="Barricades" instance=ExtResource("12_barricade")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -12.5, 0, 0)
+barricade_id = &"start_west"
+
+[node name="start_north" parent="Barricades" instance=ExtResource("12_barricade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -10.5)
+barricade_id = &"start_north"
+
+[node name="start_south" parent="Barricades" instance=ExtResource("12_barricade")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 4, 0, 10.5)
+barricade_id = &"start_south"
+
+[node name="hall_north" parent="Barricades" instance=ExtResource("12_barricade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 0, -10.5)
+barricade_id = &"hall_north"
+
+[node name="hall_south" parent="Barricades" instance=ExtResource("12_barricade")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 24, 0, 10.5)
+barricade_id = &"hall_south"
+
+[node name="vault_north" parent="Barricades" instance=ExtResource("12_barricade")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 0, -10.5)
+barricade_id = &"vault_north"
+
+[node name="vault_east" parent="Barricades" instance=ExtResource("12_barricade")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 60.5, 0, 0)
+barricade_id = &"vault_east"
+
+[node name="Doors" type="Node3D" parent="."]
+
+[node name="HallDoor" parent="Doors" instance=ExtResource("8_door")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 12, 0, 0)
+door_id = &"hall_door"
+
+[node name="VaultDoor" parent="Doors" instance=ExtResource("8_door")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 36, 0, 0)
+door_id = &"vault_door"
+
+[node name="Shop" type="Node3D" parent="."]
+
+[node name="RevolverWallBuy" parent="Shop" instance=ExtResource("3_wallbuy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -9.5)
+weapon_id = &"revolver"
+
+[node name="StartAmmoStation" parent="Shop" instance=ExtResource("9_ammo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -9.5)
+
+[node name="IronConstitutionAltar" parent="Shop" instance=ExtResource("10_altar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 9.5)
+perk_id = &"iron_constitution"
+
+[node name="RifleWallBuy" parent="Shop" instance=ExtResource("3_wallbuy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, -9.5)
+weapon_id = &"rifle"
+
+[node name="BlunderbussWallBuy" parent="Shop" instance=ExtResource("3_wallbuy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31, 0, -9.5)
+weapon_id = &"blunderbuss"
+
+[node name="SecondWindAltar" parent="Shop" instance=ExtResource("10_altar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 17, 0, 9.5)
+perk_id = &"second_wind"
+
+[node name="SureGripAltar" parent="Shop" instance=ExtResource("10_altar")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31, 0, 9.5)
+perk_id = &"sure_grip"
+
+[node name="GreatswordWallBuy" parent="Shop" instance=ExtResource("3_wallbuy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 0, -9.5)
+weapon_id = &"greatsword"
+
+[node name="ArmingSwordWallBuy" parent="Shop" instance=ExtResource("3_wallbuy")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 54, 0, 9.5)
+weapon_id = &"arming_sword"
+
+[node name="VaultAmmoStation" parent="Shop" instance=ExtResource("9_ammo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 0, 9.5)
+
+[node name="RiposteAltar" parent="Shop" instance=ExtResource("10_altar")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 59.5, 0, -6)
+perk_id = &"riposte"
+
+[node name="MatchManager" type="Node" parent="."]
+script = ExtResource("11_match")
+player_spawn = NodePath("../PlayerSpawn")
+auto_start = true
+end_action = 1

@@ -2,7 +2,7 @@ class_name DebugActions
 extends Node
 ## Debug-build hotkeys for exercising systems before their real triggers exist.
 ## F4 start a match (waves; F019)
-## F5 reload scene · F6 hurt self (25, world damage) · F7 test shot (30, hitscan from camera)
+## F5 reload the level · F6 hurt self (25, world damage) · F7 test shot (30, hitscan from camera)
 ## F8 toggle melee sweep drawing · F9 cycle the equipped melee weapon.
 ## F10 spawn an acolyte · Shift+F10 spawn 30 · F11 remove all enemies · F12 grant 1000 points.
 
@@ -23,7 +23,8 @@ func _ready() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"debug_reload"):
 		get_viewport().set_input_as_handled()
-		get_tree().reload_current_scene()
+		if not Game.reload_level():
+			get_tree().reload_current_scene()
 	elif event.is_action_pressed(&"debug_hurt_self"):
 		get_viewport().set_input_as_handled()
 		hurt_self()

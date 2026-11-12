@@ -6,6 +6,11 @@ extends Node
 ## cleared) or Defeat (no living Hunter). After Results the sandbox is reset to free play.
 ##
 ## Lobby is free play: start_match() (F4 in debug builds) begins round 1's intermission.
+## A level can start its match on load ([member auto_start]) and send players back to the main
+## menu when it ends ([member end_action]); the F057 test level does both.
+
+## What happens when Results ends.
+enum EndAction { RESET_SANDBOX, MAIN_MENU }
 
 const GROUP := &"match_manager"
 const FLOW_SCENE := preload("res://src/match/match_flow.tscn")
@@ -13,6 +18,10 @@ const RESULTS_S := 5.0
 
 ## Where players are revived after Results. Empty = where each player was at match start.
 @export var player_spawn: NodePath
+## Start the match as soon as the level is loaded.
+@export var auto_start: bool = false
+## RESET_SANDBOX: revive players for more free play (arena). MAIN_MENU: back to the menu.
+@export var end_action: EndAction = EndAction.RESET_SANDBOX
 ## Settings override (tests). Null = Settings.match_settings.
 var settings: MatchSettings
 var flow: MatchFlow
@@ -34,6 +43,8 @@ func _ready() -> void:
 	flow = FLOW_SCENE.instantiate() as MatchFlow
 	add_child(flow)
 	Events.enemy_killed.connect(_on_enemy_killed)
+	if auto_start:
+		start_match.call_deferred()
 
 
 func _physics_process(delta: float) -> void:
@@ -104,8 +115,19 @@ func step(delta: float) -> void:
 		&"Results":
 			phase_left -= delta
 			if phase_left <= 0.0:
-				_reset_sandbox()
-				flow.transition_to(&"Lobby")
+				_finish()
+
+
+func _finish() -> void:
+	if end_action == EndAction.MAIN_MENU:
+		var registry := _registry()
+		if registry != null:
+			registry.clear()
+		flow.transition_to(&"Lobby")
+		Game.go_to_menu()
+		return
+	_reset_sandbox()
+	flow.transition_to(&"Lobby")
 
 
 func get_debug_info() -> Dictionary:

@@ -52,6 +52,8 @@ Status: `todo` · `in progress` · `done`. Update this file in the same change a
 | F053 | Perks & consumables | todo | |
 | F054 | Audio service | todo | |
 | F055 | Performance pass | todo | |
+| F056 | Main menu & level select (placeholder) | done | Built ahead of M2. `Game` routes (`load_level`, `go_to_menu`, `reload_level`, `quit` with a swappable `quit_handler`); `main.gd` swaps `MainMenu` ↔ a level `Session` (level, HUD, overlay, `PauseMenu`, debug tools). Play loads the F057 test level. Esc pause menu blocks gameplay input (`Game.gameplay_input_blocked`); F5 reloads the level |
+| F057 | Placeholder playable level | done | Built ahead of M2. `maps/dev/test_level`: Start → Hall (750) → Vault (1250); 7 boarded windows with closet spawns (3/2/2); every wall-buy, both ammo stations, all 4 perks; `MatchManager.auto_start` + `end_action = MAIN_MENU`; `tests/world/test_level.gd` |
 | **M6** | **Host power tools** | | |
 | F060 | Full MatchSettings panel | todo | |
 | F061 | In-lobby Wave Editor | todo | |

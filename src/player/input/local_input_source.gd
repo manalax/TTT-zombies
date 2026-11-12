@@ -3,7 +3,9 @@ extends PlayerInputSource
 ## Keyboard and mouse input for the local player.
 ##
 ## Applies the local prefs from the Settings autoload (sensitivity, invert Y, hold/toggle
-## crouch) and owns mouse capture: `pause` releases the mouse, a click recaptures it.
+## crouch) and owns mouse capture: `pause` releases the mouse, a click recaptures it. While a
+## menu covers gameplay (Game.gameplay_input_blocked, the F056 pause menu) it sends an empty
+## intent and leaves the mouse alone.
 
 ## Capture the mouse when the node enters the tree. Tests turn this off.
 @export var capture_on_ready: bool = true
@@ -22,6 +24,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"pause"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		get_viewport().set_input_as_handled()
+	elif Game.gameplay_input_blocked:
+		return
 	elif event is InputEventMouseButton and event.is_pressed() and not is_capturing():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		get_viewport().set_input_as_handled()
@@ -53,6 +57,10 @@ func consume_look() -> Vector2:
 
 
 func get_intent() -> MoveIntent:
+	if Game.gameplay_input_blocked:
+		_look = Vector2.ZERO
+		_cycle = 0
+		return MoveIntent.new()
 	if Settings.crouch_mode == Settings.CrouchMode.TOGGLE:
 		if Input.is_action_just_pressed(&"crouch"):
 			_crouch_toggled = not _crouch_toggled
